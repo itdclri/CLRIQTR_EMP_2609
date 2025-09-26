@@ -1,0 +1,127 @@
+@model CLRIQTR_EMP.Models.NewApplicationModel
+
+@{
+    ViewBag.Title = "New Application - Step 1";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var quartersTypeLabel = "Applying for Quarters Type";
+    if (!string.IsNullOrEmpty(Model.QuarterType))
+    {
+        quartersTypeLabel += " - " + Model.QuarterType;
+    }
+
+    var payLevelRaw = Session["PayLevel"]?.ToString() ?? "";
+    int payLevel = 0;
+
+    // Extract digits only, to handle cases like "13 a"
+    var digitsOnly = new string(payLevelRaw.Where(char.IsDigit).ToArray());
+    int.TryParse(digitsOnly, out payLevel);
+
+    var designation = Session["Designation"]?.ToString() ?? "";
+
+    bool showScientistOption = false;
+
+    if (payLevel > 7)
+    {
+        showScientistOption = true;
+    }
+    else if (payLevel == 7 && designation.Equals("Technical Officer", StringComparison.OrdinalIgnoreCase))
+    {
+        showScientistOption = true;
+    }
+}
+
+<style>
+    .navbar-nav .nav-link.active {
+        font-weight: bold;
+        color: #0d6efd; /* Bootstrap primary color */
+    }
+</style>
+
+<nav class="navbar navbar-expand navbar-light bg-light mb-4">
+    <div class="container">
+        <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+                <a class="nav-link active" href="@Url.Action("Index", "Employee")">New Application</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" aria-current="page" href="@Url.Action("ViewDrafts", "Employee")">My Applications</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<h2 class="mt-4 text-center">New Application</h2>
+
+<div class="card mt-4 shadow-sm p-4">
+    @using (Html.BeginForm("NewApplication", "Employee", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        <!-- Quarters Toggle -->
+        <div class="mb-4 row align-items-center">
+            <div class="col-md-4 pe-4">
+                <label class="form-label fw-bold">@quartersTypeLabel</label>
+            </div>
+            <div class="col-md-8 d-flex align-items-center">
+                <div class="form-check form-switch">
+                    @Html.CheckBoxFor(m => m.ApplyingForQuarters, new { @class = "form-check-input", id = "quartersToggle" })
+                    <label class="form-check-label ms-2" for="quartersToggle">Yes / No</label>
+                </div>
+                @Html.ValidationMessageFor(m => m.ApplyingForQuarters, "", new { @class = "text-danger ms-3" })
+            </div>
+        </div>
+
+        <!-- Scientist Toggle -->
+        if (showScientistOption)
+        {
+            <div class="mb-4 row align-items-center">
+                <div class="col-md-4 pe-4">
+                    <label class="form-label fw-bold">Applying for Scientist Quarters</label>
+                </div>
+                <div class="col-md-8 d-flex align-items-center">
+                    <div class="form-check form-switch">
+                        @Html.CheckBoxFor(m => m.ApplyingForScientistQuarters, new { @class = "form-check-input", id = "scientistToggle" })
+                        <label class="form-check-label ms-2" for="scientistToggle">Yes / No</label>
+                    </div>
+                    @Html.ValidationMessageFor(m => m.ApplyingForScientistQuarters, "", new { @class = "text-danger ms-3" })
+                </div>
+            </div>
+        }
+
+        <!-- Submit -->
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary px-5">Next</button>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.querySelector("form");
+            const quartersToggle = document.getElementById("quartersToggle");
+            const scientistToggle = document.getElementById("scientistToggle");
+
+            let errorMessageDiv = document.createElement("div");
+            errorMessageDiv.className = "text-danger text-center mt-2";
+            errorMessageDiv.style.display = "none";
+            form.appendChild(errorMessageDiv);
+
+            form.addEventListener("submit", function (e) {
+                const applyingForQuarters = quartersToggle.checked;
+                const applyingForScientistQuarters = scientistToggle ? scientistToggle.checked : null;
+
+                if (!applyingForQuarters && !applyingForScientistQuarters) {
+                    e.preventDefault();
+                    errorMessageDiv.innerText = "Both fields cannot be 'No'. At least one must be 'Yes'.";
+                    errorMessageDiv.style.display = "block";
+                } else {
+                    errorMessageDiv.innerText = "";
+                    errorMessageDiv.style.display = "none";
+                }
+            });
+        });
+    </script>
+}

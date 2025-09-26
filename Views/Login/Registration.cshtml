@@ -1,0 +1,138 @@
+@model CLRIQTR_EMP.Models.EmpLogin
+
+@{
+    ViewBag.Title = "Employee Registration";
+}
+
+<style>
+    .registration-container {
+        max-width: 450px;
+        margin: 40px auto;
+        padding: 30px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background: #f9f9f9;
+        box-shadow: 0 0 10px rgb(0 0 0 / 0.1);
+    }
+
+        .registration-container h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+    .form-group label {
+        font-weight: 600;
+    }
+
+    .form-check-label {
+        margin-left: 5px;
+        font-weight: 500;
+    }
+
+    .form-check-inline {
+        margin-right: 20px;
+    }
+
+    .btn-primary {
+        width: 100%;
+        padding: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .text-danger {
+        font-size: 0.875rem;
+        margin-top: 5px;
+    }
+
+    small.form-text {
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .alert-success {
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
+
+    .navbar-nav .nav-link.active {
+        font-weight: bold;
+        color: #0d6efd; /* Bootstrap primary color */
+    }
+</style>
+
+<nav class="navbar navbar-expand navbar-light bg-light mb-4">
+    <div class="container">
+        <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+                <a class="nav-link active" href="@Url.Action("Registration", "Login")">Registration</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" aria-current="page" href="@Url.Action("Index", "Login")">Login</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="https://admnquarters.clri.org/Forgotpwd/ForgotPassword" target="_blank" rel="noopener noreferrer">Forgot Password</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<div class="registration-container">
+    <h2>Employee Registration</h2>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    @using (Html.BeginForm("Registration", "Login", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-group mb-3">
+            <label>Lab</label><br />
+            <div class="form-check form-check-inline">
+                @Html.RadioButtonFor(m => m.lab, "CLRI", new { @class = "form-check-input", id = "labCLRI" })
+                <label class="form-check-label" for="labCLRI">CLRI</label>
+            </div>
+            <div class="form-check form-check-inline">
+                @Html.RadioButtonFor(m => m.lab, "SERC", new { @class = "form-check-input", id = "labSERC" })
+                <label class="form-check-label" for="labSERC">SERC</label>
+            </div>
+            <div class="form-check form-check-inline">
+                @Html.RadioButtonFor(m => m.lab, "CMC", new { @class = "form-check-input", id = "labCMC" })
+                <label class="form-check-label" for="labCMC">CMC</label>
+            </div>
+            @Html.ValidationMessageFor(m => m.lab, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="empno">Employee Number</label>
+            @Html.TextBoxFor(m => m.empno, new { @class = "form-control", placeholder = "Enter Employee Number", id = "empno" })
+            @Html.ValidationMessageFor(m => m.empno, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="form-group mb-4">
+            <label for="pwd">Password</label>
+            @Html.PasswordFor(m => m.pwd, new { @class = "form-control", placeholder = "Enter Password", id = "pwd" })
+            @*@Html.ValidationMessageFor(m => m.pwd, "", new { @class = "text-danger" }) <br />*@
+            <small class="form-text text-muted">
+                Password requirements:<br />
+                • 8 to 20 characters<br />
+                • At least 1 uppercase letter<br />
+                • At least 1 lowercase letter<br />
+                • At least 2 digits<br />
+                • At least 1 special character<br />
+            </small>
+            @Html.ValidationMessageFor(m => m.pwd, "", new { @class = "text-danger" })
+        </div>
+
+        <button type="submit" class="btn btn-primary">Register</button>
+    }
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

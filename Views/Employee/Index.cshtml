@@ -1,0 +1,130 @@
+@model CLRIQTR_EMP.Models.EmpMast
+
+@{
+    ViewBag.Title = "Employee Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .navbar-nav .nav-link.active {
+        font-weight: bold;
+        color: #0d6efd; /* Bootstrap primary color */
+    }
+</style>
+
+<nav class="navbar navbar-expand navbar-light bg-light mb-4">
+    <div class="container">
+        <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+                <a class="nav-link active" href="@Url.Action("Index", "Employee")">New Application</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" aria-current="page" href="@Url.Action("ViewDrafts", "Employee")">My Applications</a>
+            </li>
+            
+        </ul>
+    </div>
+</nav>
+
+<h2 class="mt-4">Employee Details</h2>
+
+<div class="card mt-4 mb-5 shadow-sm">
+    <div class="card-body">
+        <div class="row">
+            <!-- First column -->
+            <div class="col-md-6">
+                <div class="d-flex mb-4 align-items-center">
+                    <div class="flex-shrink-0 pe-3" style="min-width: 180px;"><strong>Lab</strong></div>
+                    <div class="flex-grow-1">@(Model?.LabName ?? "N/A")</div>
+                </div>
+
+                <div class="d-flex mb-4 align-items-center">
+                    <div class="flex-shrink-0 pe-3" style="min-width: 180px;"><strong>Employee No</strong></div>
+                    <div class="flex-grow-1">@(Model?.EmpNo ?? "N/A")</div>
+                </div>
+
+                <div class="d-flex mb-4 align-items-center">
+                    <div class="flex-shrink-0 pe-3" style="min-width: 180px;"><strong>Name</strong></div>
+                    <div class="flex-grow-1">@(Model?.EmpName ?? "N/A")</div>
+                </div>
+
+                <div class="d-flex mb-4 align-items-center">
+                    <div class="flex-shrink-0 pe-3" style="min-width: 180px;"><strong>Designation</strong></div>
+                    <div class="flex-grow-1">@(Model?.DesDesc ?? "N/A")</div>
+                </div>
+
+                <div class="d-flex mb-4 align-items-center">
+                    <div class="flex-shrink-0 pe-3" style="min-width: 180px;"><strong>Mobile Number</strong></div>
+                    <div class="flex-grow-1">@(Model?.MobileNumber ?? "N/A")</div>
+                </div>
+
+                <div class="d-flex mb-4 align-items-center">
+                    <div class="flex-shrink-0 pe-3" style="min-width: 180px;"><strong>Category</strong></div>
+                    <div class="flex-grow-1">@(Model?.Category ?? "N/A")</div>
+                </div>
+
+                <div class="d-flex mb-4 align-items-center">
+                    <div class="flex-shrink-0 pe-3" style="min-width: 180px;"><strong>Basic Pay</strong></div>
+                    <div class="flex-grow-1">@(Model?.BasicPay?.ToString() ?? "N/A")</div>
+                </div>
+            </div>
+
+            <!-- Second column -->
+            <div class="col-md-6">
+                <div class="d-flex mb-4 align-items-center">
+                    <div class="flex-shrink-0 pe-3" style="min-width: 240px;"><strong>Physically Challenged</strong></div>
+                    <div class="flex-grow-1">@(Model?.Phy ?? "N/A")</div>
+                </div>
+
+                <div class="d-flex mb-4 align-items-center">
+                    <div class="flex-shrink-0 pe-3" style="min-width: 240px;"><strong>Present Pay Level</strong></div>
+                    <div class="flex-grow-1">@(Model?.PayLvl ?? "N/A")</div>
+                </div>
+
+                <div class="d-flex mb-4 align-items-center">
+                    <div class="flex-shrink-0 pe-3" style="min-width: 240px;"><strong>Pay Level as on 01.01.2025</strong></div>
+                    <div class="flex-grow-1">@(Model?.PayLvl ?? "N/A")</div>
+                </div>
+
+                <div class="d-flex mb-4 align-items-center">
+                    <div class="flex-shrink-0 pe-3" style="min-width: 240px;"><strong>Date of Birth</strong></div>
+                    <div class="flex-grow-1">@(Model?.DOB ?? "N/A")</div>
+                </div>
+
+                <div class="d-flex mb-4 align-items-center">
+                    <div class="flex-shrink-0 pe-3" style="min-width: 240px;"><strong>Date of Joining CSIR</strong></div>
+                    <div class="flex-grow-1">@(Model?.DOJ?? "N/A")</div>
+                </div>
+
+                <div class="d-flex mb-4 align-items-center">
+                    <div class="flex-shrink-0 pe-3" style="min-width: 240px;"><strong>Date of Joining Present Post</strong></div>
+                    <div class="flex-grow-1">@(Model?.DOP ?? "N/A")</div>
+                </div>
+
+                <div class="d-flex mb-4 align-items-center">
+                    <div class="flex-shrink-0 pe-3" style="min-width: 240px;"><strong>Email</strong></div>
+                    <div class="flex-grow-1">@(Model?.Email ?? "N/A")</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <br />
+   
+
+    <!-- Centered Next Button -->
+    <div class="text-center mb-5">
+        <a href="@Url.Action("NewApplication", "Employee", new { payLevel = Model?.PayLvl, designation = Model?.DesDesc })" class="btn btn-primary px-5">
+            Next
+        </a>
+
+
+    </div>
+</div>
+
+@if (Model == null)
+{
+    <div class="alert alert-danger mt-3" role="alert">
+        Employee data could not be loaded. Please try again or contact administrator.
+    </div>
+}

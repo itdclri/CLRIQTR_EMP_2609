@@ -1,0 +1,105 @@
+@model IEnumerable<CLRIQTR_EMP.Models.EqtrApply>
+
+
+
+@{
+    var groupedDrafts = Model
+        .GroupBy(d => d.QtrAppNo)
+        .Select(g => new
+        {
+            QtrAppNo = g.Key,
+            Types = g.Select(d => string.IsNullOrEmpty(d.EqtrTypeSel) ? "SAQTR" : "EQTR").Distinct(),
+            Status = g.Any(d => d.AppStatus == "D") ? "D" : g.First().AppStatus // Draft > Complete > Pending
+        })
+        .ToList();
+}
+
+<style>
+    .navbar-nav .nav-link.active {
+        font-weight: bold;
+        color: #0d6efd; /* Bootstrap primary color */
+    }
+</style>
+
+<nav class="navbar navbar-expand navbar-light bg-light mb-4">
+    <div class="container">
+        <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+                <a class="nav-link " href="@Url.Action("Index", "Employee")">New Application</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="@Url.Action("ViewDrafts", "Employee")">My Applications</a>
+            </li>
+
+        </ul>
+    </div>
+</nav>
+
+<h2>Your Applications</h2>
+
+@if (groupedDrafts.Any())
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Application Number</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in groupedDrafts)
+            {
+                <tr>
+                    <td>@item.QtrAppNo</td>
+                    <td>
+                        @{
+                            string statusLabel = "Unknown";
+                            switch (item.Status)
+                            {
+                                case "C":
+                                    statusLabel = "Complete";
+                                    break;
+                                case "D":
+                                    statusLabel = "Draft";
+                                    break;
+                                case "E":
+                                    statusLabel = "Pending";
+                                    break;
+                            }
+                        }
+                        @statusLabel
+                    </td>
+                    <td>
+                        @if (item.Status == "D")
+                        {
+                            <a href="@Url.Action("SubmitApplication", "Employee", new { draftId = item.QtrAppNo })"
+                               class="btn btn-success">
+                                View
+                            </a>
+                        }
+                        else if (item.Status == "C")
+                        {
+                            <a href="@Url.Action("DownloadPdf", "Employee", new { qtrAppNo = item.QtrAppNo })"
+                               class="btn btn-primary" target="_blank">
+                                Download PDF
+                            </a>
+                        }
+                        else if (item.Status == "E")
+                        {
+                            <span class="text-muted">Pending Review</span>
+                        }
+                        else
+                        {
+                            <span class="text-danger">Unknown Status</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No drafts or applications found.</p>
+}

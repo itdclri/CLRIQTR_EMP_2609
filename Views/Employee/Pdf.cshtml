@@ -1,0 +1,432 @@
+﻿@model CLRIQTR_EMP.Models.QuarterApplicationPdfDto
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+            .header img {
+                width: 100px;
+                height: auto;
+                margin-bottom: 10px;
+            }
+
+        .org-name {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .org-address {
+            font-size: 22px;
+            margin-top: 5px;
+        }
+
+        .form-title {
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 10px;
+            text-decoration: underline;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+            table-layout: fixed; /* Ensures consistent column widths */
+        }
+
+        td, th {
+            border: 1px solid #000;
+            padding: 10px;
+            vertical-align: top;
+            /*  Prevent content overflow and enable wrapping */
+            word-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
+            /*  Prevent table cell splitting across pages */
+            page-break-inside: avoid !important;
+        }
+
+        tr {
+            page-break-inside: avoid !important;
+        }
+
+        .sno {
+            width: 5%;
+            text-align: center;
+        }
+
+        .label {
+            width: 50%;
+        }
+
+        .value {
+            width: 45%;
+            font-weight: bold;
+        }
+    </style>
+
+</head>
+<body>
+
+    <div class="header">
+        <img src="~/Content/Images/CLRI-logo.png" alt="CLRI logo" />
+        <div class="org-name">CSIR-CENTRAL LEATHER RESEARCH INSTITUTE</div>
+        <div class="org-address">
+            Adyar, Chennai – 600020
+        </div>
+        <div class="form-title">Application for Allotment of CSIR General  <br /> Pool Residence  At Chennai For the Allotment Year 2025</div>
+    </div>
+
+    <br /> 
+
+    <table page-break-after: always;>
+        
+        <tr><td class="sno">1</td><td class="label">Application No.</td><td class="value">@Model.QtrAppNo</td></tr>
+        <tr><td class="sno">2</td><td class="label">Date of Application</td><td class="value">@Model.Doa</td></tr>
+        <tr><td class="sno">3</td><td class="label">Name of the Institute / Lab</td><td class="value">@Model.LabName</td></tr>
+        <tr><td class="sno">4</td><td class="label">ID No.</td><td class="value">@Model.EmpNo</td></tr>
+        <tr><td class="sno">5</td><td class="label">Employee Name</td><td class="value">@Model.EmpName</td></tr>
+        <tr><td class="sno">6</td><td class="label">Designation</td><td class="value">@Model.Designation</td></tr>
+        <tr><td class="sno">7</td><td class="label">Email</td><td class="value">@Model.Email</td></tr>
+        <tr><td class="sno">8</td><td class="label">Mobile Number</td><td class="value">@Model.MobileNumber</td></tr>
+        <tr>
+            <td class="sno">9</td>
+            <td class="label">Category</td>
+            <td class="value">
+                @if (Model.Category == "Gen")
+                {
+                    @:General
+                }
+                else
+                {
+                    @Model.Category
+                }
+            </td>
+        </tr>
+
+        <tr>
+            <td class="sno">10</td>
+            <td class="label">Physically Handicapped</td>
+            <td class="value">
+                @if (Model.PhysicallyHandicapped == "Y")
+                {
+                    @:Yes
+                }
+                else if (Model.PhysicallyHandicapped == "N")
+                {
+                    @:No
+                }
+                else
+                {
+                    @Model.PhysicallyHandicapped
+                }
+            </td>
+        </tr>
+
+
+        <tr><td class="sno">11</td><td class="label">Present Pay Level</td><td class="value">@Model.PayLevel</td></tr>
+        <tr><td class="sno">12</td><td class="label">Pay Level as on 01.01.2025</td><td class="value">@Model.PayLevel</td></tr>
+        <tr><td class="sno">13</td><td class="label">Date from which current Pay Level is being drawn</td><td class="value">01-01-2025</td></tr>
+        <tr><td class="sno">14</td><td class="label">Date of Birth</td><td class="value">@Model.DateOfBirth</td></tr>
+        <tr><td class="sno">15</td><td class="label">Date of joining CSIR</td><td class="value">@Model.DateOfJoining</td></tr>
+        <tr><td class="sno">16</td><td class="label">Basic Pay</td><td class="value">@Model.BasicPay</td></tr>
+        <tr><td class="sno">17</td><td class="label">Particulars of accommodation (Govt./ CSIR/Private) occupied on the date of application(full address need to be provided)</td>
+        <td class="value" style="height: 100px; overflow-y: auto; white-space: normal;">@Model.AccommodationDetails</td></tr>
+        @{
+            var formattedFamilyDetails = System.Text.RegularExpressions.Regex.Replace(
+                Model.FamilyDetails ?? "",
+                @"\)(\S)",
+                ") $1"      // Add a space after the parenthesis
+            );
+        }
+
+
+   
+
+       </table>
+
+    <table>
+
+        <tr>
+            <td class="sno">18</td>
+            <td class="label">Details of Family member of the applicant as defined in Allotment Rule 2 (s)</td>
+            <td class="value" style="height: 100px; overflow-y: auto; white-space: normal;">
+                @formattedFamilyDetails
+            </td>
+
+        </tr>
+
+        <tr><td class="sno">19</td><td class="label">Type Entitled</td><td class="value">@Model.EntitledType</td></tr>
+        <tr>
+            <td class="sno">20</td>
+            <td class="label">Are you a resident of CLRI Quarters? (Yes/No)</td>
+            <td class="value">
+                @{
+                    var qtres = (Model.qtres ?? "").Trim().ToUpper();
+                }
+                @if (qtres == "IQ")
+                {
+                    @:Yes
+                }
+                else if (qtres == "OQ")
+                {
+                    @:No
+                }
+                else
+                {
+                    @Model.qtres
+                }
+            </td>
+        </tr>
+
+        <tr>
+            <td class="sno">21</td>
+            <td class="label">Whether interested for type IV (in case of applicants entitled for type V only)</td>
+            <td class="value">
+                @{
+                    var lowertype = (Model.lowertypesel ?? "").Trim().ToUpper();
+                }
+                @if (lowertype == "I")
+                {
+                    @:Interested
+                }
+                else if (lowertype == "NI")
+                {
+                    @:Not Interested
+                }
+                else
+                {
+                    @Model.lowertypesel
+                }
+            </td>
+        </tr>
+
+        <tr>
+            <td class="sno">22</td>
+            <td class="label">Whether interested for Scientist Apartment Accommodation</td>
+            <td class="value">
+                @{
+                    var saint = (Model.saint ?? "").Trim().ToUpper();
+                }
+                @if (saint == "SI")
+                {
+                    @:Interested
+                }
+                else if (saint == "SNI")
+                {
+                    @:Not Interested
+                }
+                else
+                {
+                    @Model.saint
+                }
+            </td>
+        </tr>
+
+        <tr>
+            <td class="sno">23</td>
+            <td class="label">
+                Whether the applicant owns a house either in his/her own name or in his/her spouse's name within the municipal limits of Greater Chennai
+            </td>
+            <td class="value">
+                @if (Model.OwnHouse == "O")
+                {
+                    @:Yes
+                }
+                else if (Model.OwnHouse == "NO")
+                {
+                    @:No
+                }
+                else
+                {
+                    @Model.OwnHouse
+                }
+            </td>
+        </tr>
+        <tr><td class="sno">&nbsp;</td><td class="label" style="font-weight:bold;">If yes, please furnish details such as</td><td class="value">&nbsp;</td></tr>
+        <tr><td class="sno">&nbsp;</td><td class="label">a) Owner's Name:</td><td class="value">@Model.OwnerName</td></tr>
+        <tr><td class="sno">&nbsp;</td><td class="label">b) Owner's Address:</td><td class="value">@Model.OwnerAddress</td></tr>
+        <tr>
+            <td class="sno">&nbsp;</td>
+            <td class="label">c)  If yes, whether the house is letout (Yes /No)</td>
+            <td class="value">
+                @if (Model.IsHouseLetOut == "R")
+                {
+                    @:Yes
+                }
+                else
+                {
+                    @Model.IsHouseLetOut
+                }
+            </td>
+        </tr>
+        <tr><td class="sno">&nbsp;</td><td class="label">d)  If yes, the monthly rent received</td><td class="value">@Model.RentReceived</td></tr>
+        <tr>
+            <td class="sno">24</td>
+            <td class="label">State whether permanent or temporary</td>
+            <td class="value">
+                @if (Model.PermanentOrTemporary == "P")
+                {
+                    @:Permanent
+                }
+                else if (Model.PermanentOrTemporary == "T")
+                {
+                    @:Temporary
+                }
+                else
+                {
+                    @Model.PermanentOrTemporary
+                }
+            </td>
+        </tr>
+        <tr><td class="sno">25</td><td class="label">Particulars of surety (incase the applicant is  temporary and has put less than 3 years)</td><td class="value">&nbsp;</td></tr>
+        <tr><td class="sno">&nbsp;</td><td class="label">i) Name of the surety</td><td class="value">@Model.SuretyName</td></tr>
+        <tr><td class="sno">&nbsp;</td><td class="label">ii) Present designation:</td><td class="value">@Model.SuretyDesignation</td></tr>
+        <tr><td class="sno">&nbsp;</td><td class="label">iii) Permanent post held:</td><td class="value">@Model.SuretyPost</td></tr>
+        <tr>
+            <td class="sno">26</td>
+            <td class="label">Have your services been declared essential?</td>
+            <td class="value">
+                @if (Model.ServicesEssential == "Y")
+                {
+                    @:Yes
+                }
+                else if (Model.ServicesEssential == "N")
+                {
+                    @:No
+                }
+                else
+                {
+                    @Model.ServicesEssential
+                }
+            </td>
+        </tr>
+        <tr>
+            <td class="sno">27</td>
+            <td class="label">Are you a Common Cadre Officer?</td>
+            <td class="value">
+                @if (Model.cco == "Y")
+                {
+                    @:Yes
+                }
+                else if (Model.cco == "N")
+                {
+                    @:No
+                }
+                else
+                {
+                    @Model.cco
+                }
+            </td>
+        </tr>
+
+    </table>
+    <br />
+
+    <div style="border: 1px solid #000; padding: 15px; margin-top: 19px; page-break-before: always; ">
+        <h3 style="text-align:center; text-decoration:underline;">DECLARATION</h3>
+        <ol style="font-size:20px;">
+            <li>
+                Certifies that I have read the CSIR (Residence Allotment) Rules, 2022 and declare
+                that the particulars furnished by me above are correct, and the allotment to be made
+                to me shall be subject to these rules and subsequent amendments, if any, thereto.
+                I also undertake that I shall not sublet part or whole of the residence allotted to me
+                in contravention of these rules as I am aware that such an action shall render me liable
+                to cancellation of the allotment and payment of penal license fee besides rendering me
+                liable to disciplinary proceedings under the relevant rules as made applicable to the
+                Council employees.
+            </li>
+        </ol>
+    @*</div>
+  
+    <div style="border:1px solid #000; padding:15px; margin-top:20px;">*@
+
+        <ol start="2" style="font-size: 18px;">
+            <li>
+                I have drawn House Building Advance (HBA) under CSIR (HBA) Rules in the year
+                __________ for construction of a house/purchase of a flat at _______________ ___________________________________________________________ (address).
+
+            </li><br />
+            <li>I have not drawn HBA under CSIR Rules and in case I draw it in future, I shall keep the allotment Authority informed.</li>
+            <li>I authorize the CSIR to collect the dues towards Licence fee, Water/ Electricity charge from my salary.</li>
+            <li>
+                I hold myself responsible for (a) maintaining the residence and premises in a clean condition
+                and keeping, all the fittings and the installations in proper order, (b) any damage that might
+                occur to such installation and (c) payment of the cost of damage, if any. I undertake not to
+                effect any condition/alteration in the quarters allotted to me.
+            </li>
+            <li>
+                Certified that either myself or my spouse <b>own / does not own</b> a house within the
+                municipal limits of Chennai.
+            </li>
+            <li>I declare that the information furnished above are true and correct to the best of my knowledge.</li>
+            <li>I agree to abide by the CSIR (Residence Allotment) Rules, 2022 as amended from time to time.</li>
+        </ol>
+        <br />
+        <p>Date: ____________</p>
+        <p style="text-align:right; margin-right:50px;">
+            <b>Signature of the Applicant & Designation</b>
+        </p>
+    </div>
+
+    <br /><br />
+
+    <div style="border:1px solid #000; padding:15px; margin-top:20px;">
+        <h3 style="text-align:center; text-decoration:underline;">ENDORSEMENT BY OFFICE</h3>
+        <p>
+            Certified the information furnished above (Sl. No. 3 to 27) by the applicant has been verified
+            with reference to the service records of the individual maintained in the office and found to
+            be correct. It is further certified that the applicant has drawn / not drawn HBA under the CSIR
+            (HBA) Rules.
+        </p>
+        <p>Date: ____________</p>
+        <p style="text-align:right; margin-right:50px;">
+            <b>COA/ADMINISTRATIVE OFFICER</b><br />
+            (Office Seal)
+        </p>
+        <p style="font-weight:bold;">
+            Note: All the Columns should be filled in clearly otherwise the application is liable to be rejected.
+        </p>
+    </div>
+
+    
+
+    <div style="border: 1px solid #000; padding: 15px; margin-top: 20px; page-break-before: always;">
+        <h3>Definition:</h3>
+        <p>
+            “Family” means wife or husband of allottee, as the case may be and children, step-children,
+            legally adopted children, parents, brothers and sisters as ordinarily reside with and are
+            dependent on the allottee.
+        </p>
+        <h4>Classification of CSIR Residence and entitlement thereof:</h4>
+        <p>Residences other than Scientist Apartments and Hostel:</p>
+        <table>
+            <tr>
+                <th>Type of Residences</th>
+                <th>Level in the Pay matrix for entitlement</th>
+            </tr>
+            <tr><td>I</td><td>1</td></tr>
+            <tr><td>II</td><td>2,3,4,5</td></tr>
+            <tr><td>III</td><td>6,7,8</td></tr>
+            <tr><td>IV</td><td>9,10,11</td></tr>
+            <tr><td>V</td><td>12,13, 13a</td></tr>
+            <tr><td>VI</td><td>14 & 15 (index 1-4)</td></tr>
+        </table>
+    </div>
+
+
+</body>
+</html>
