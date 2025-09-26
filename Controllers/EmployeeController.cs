@@ -539,11 +539,10 @@ namespace CLRIQTR_EMP.Controllers
                 object application = null;
                 string viewName = "Pdf"; // Default view
 
-                // Call appropriate method based on prefix
-                if (token.StartsWith("SA", StringComparison.OrdinalIgnoreCase))
+                if (token.Contains("/SA/"))
                 {
                     application = _employeeRepo.GetSAQuarterApplicationDetails(token);
-                    viewName = "SAPdf"; // Set view to SAPdf.cshtml for 'SA' prefix
+                    viewName = "SAPdf"; // Set view to SAPdf.cshtml for 'SA' applications
                 }
                 else
                 {

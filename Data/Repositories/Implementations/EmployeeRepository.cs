@@ -8,6 +8,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
+using Dapper;
 
 namespace CLRIQTR_EMP.Data.Repositories.Implementations
 {
@@ -1030,14 +1031,97 @@ left join  empdepdtls ed on ed.empno=e.empno
         }
 
 
+        // <summary>
+        /// Generates a new, incremented application number for the 'eqtrapply' table.
+        /// Format: QTR/CLRI/YYYY/100001
+        /// </summary>
         public string GenerateNewEqtrAppNo()
         {
-            return "EQTR" + DateTime.Now.Ticks.ToString().Substring(10); // Simplified
+            string lastAppNo = GetLastEqtrAppNo();
+            int year = DateTime.Now.Year;
+            string prefix = $"QTR/CLRI/{year}/";
+            
+
+            int newNumber = 100001; // Default starting number for a new year
+
+            if (!string.IsNullOrEmpty(lastAppNo))
+            {
+                // Extract the numeric part (e.g., "100002" from "QTR/CLRI/2025/100002")
+                string lastNumberStr = lastAppNo.Split('/').Last();
+                if (int.TryParse(lastNumberStr, out int lastNumber))
+                {
+                    newNumber = lastNumber + 1;
+                }
+            }
+
+            return prefix + newNumber;
         }
 
+        /// <summary>
+        /// Generates a new, incremented application number for the 'saeqtrapply' table.
+        /// Format: QTR/CLRI/YYYY/SA/1001
+        /// </summary>
         public string GenerateNewSaEqtrAppNo()
         {
-            return "SAQTR" + DateTime.Now.Ticks.ToString().Substring(10); // Simplified
+            string lastAppNo = GetLastSaEqtrAppNo();
+            int year = DateTime.Now.Year;
+            string prefix = $"QTR/CLRI/{year}/SA/";
+
+            int newNumber = 1001; // Default starting number for a new year
+
+            if (!string.IsNullOrEmpty(lastAppNo))
+            {
+                // Extract the numeric part
+                string lastNumberStr = lastAppNo.Split('/').Last();
+                if (int.TryParse(lastNumberStr, out int lastNumber))
+                {
+                    newNumber = lastNumber + 1;
+                }
+            }
+
+            return prefix + newNumber;
+        }
+
+        /// <summary>
+        /// Gets the last application number from the 'eqtrapply' table for the current year.
+        /// </summary>
+        /// <returns>The last application number string, or null if none exist for the year.</returns>
+        public string GetLastEqtrAppNo()
+        {
+            string year = DateTime.Now.Year.ToString();
+            string prefix = $"QTR/CLRI/{year}/";
+
+            // This query finds the highest numbered application for the current year
+            string sql = @"SELECT qtrappno FROM eqtrapply
+                       WHERE qtrappno LIKE @prefix
+                       ORDER BY qtrappno DESC
+                       LIMIT 1;";
+
+            using (var connection = new MySqlConnection(_connStr))
+            {
+                return connection.QuerySingleOrDefault<string>(sql, new { prefix = prefix + "%" });
+            }
+        }
+
+        /// <summary>
+        /// Gets the last application number from the 'saeqtrapply' table for the current year.
+        /// </summary>
+        /// <returns>The last application number string, or null if none exist for the year.</returns>
+        public string GetLastSaEqtrAppNo()
+        {
+            string year = DateTime.Now.Year.ToString();
+            string prefix = $"QTR/CLRI/{year}/SA/";
+
+            // This query finds the highest numbered application for the SA type for the current year
+            string sql = @"SELECT saqtrappno FROM saeqtrapply
+                       WHERE saqtrappno LIKE @prefix
+                       ORDER BY saqtrappno DESC
+                       LIMIT 1;";
+
+            using (var connection = new MySqlConnection(_connStr))
+            {
+                return connection.QuerySingleOrDefault<string>(sql, new { prefix = prefix + "%" });
+            }
         }
 
         public string GetFamilyDetailsByEmpNo(string empno)
