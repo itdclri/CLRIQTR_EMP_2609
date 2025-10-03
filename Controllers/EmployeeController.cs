@@ -568,9 +568,10 @@ namespace CLRIQTR_EMP.Controllers
 
             // Merge PDFs if there are more than one
             var mergedPdf = MergePdfFiles(pdfStreams);
+            var empNo = Session["EmpNo"]?.ToString();
 
             // Send the merged PDF to the client
-            return File(mergedPdf, "application/pdf", "Combined_Applications.pdf");
+            return File(mergedPdf, "application/pdf", empNo+".pdf");
         }
 
 

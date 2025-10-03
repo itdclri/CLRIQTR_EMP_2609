@@ -786,24 +786,49 @@ WHERE
         }
         public QuarterApplicationPdfDto GetQuarterApplicationDetails(string qtrAppNo)
         {
-            const string sql = @"
-        SELECT e.eqtrtypesel,e.saint,e.lowertypesel,e.qtrres,e.qtrappno, e.doa, l.labname, e.empno, em.empname, d.desdesc AS designation,
-               em.email, em.mobilenumber, em.category, em.phy AS physicallyhandicapped,
-               e.disdesc AS disabilitydetails, em.paylvl, em.paylvl AS paylevelonjan,
-               em.dop, em.dob, em.doj, em.basicpay,
-               e.cpaccom AS accommodationdetails,ed.depname AS familydetails, t.qtrtype AS entitledtype,
-               e.qtrres, e.ownhouse, e.ownname, e.ownadd AS owneraddress,
-               e.ishouseeightkm AS ishouseletout, e.ownrent AS rentreceived,
-               e.permtemp, e.surname AS suretyname, e.surpost AS suretydesignation, 
-               e.surdesig AS suretypost, e.ess,e.cco
-        FROM eqtrapply e
-        LEFT JOIN empmast em ON e.empno = em.empno
-        LEFT JOIN desmast d ON em.designation = d.desid
-        LEFT JOIN labmast l ON em.labcode = l.labcode
-        LEFT JOIN typeligibility t ON em.paylvl = t.paylvl
-left join  empdepdtls ed on ed.empno=e.empno
-        WHERE e.qtrappno = @qtrAppNo
-        LIMIT 1";
+            const string sql = @"-- Use a CTE to prepare the family details from empdep and empdepmast.
+WITH FamilyDetailsCTE AS (
+    SELECT
+        empno,
+        GROUP_CONCAT(
+            CONCAT(depname, ' (', depcode, rn, ')') 
+            SEPARATOR ', '
+        ) AS AggregatedFamilyDetails
+    FROM (
+        SELECT
+            e.empno,
+            e.depname,
+            m.depcode,
+            ROW_NUMBER() OVER(PARTITION BY e.empno, m.depcode ORDER BY e.depname) AS rn
+        FROM 
+            empdep e
+        LEFT JOIN 
+            empdepmast m ON e.depid = m.depid
+    ) AS NumberedSubquery
+    GROUP BY empno
+)
+-- Now, run your main query and join to the prepared family details.
+SELECT 
+    e.eqtrtypesel, e.saint, e.lowertypesel, e.qtrres, e.qtrappno, e.doa, l.labname, 
+    e.empno, em.empname, d.desdesc AS designation, em.email, em.mobilenumber, 
+    em.category, em.phy AS physicallyhandicapped, e.disdesc AS disabilitydetails, 
+    em.paylvl, em.paylvl AS paylevelonjan, em.dop, em.dob, em.doj, em.basicpay, 
+    e.cpaccom AS accommodationdetails, 
+    
+    -- Select the pre-formatted string from our CTE.
+    fd.AggregatedFamilyDetails AS familydetails, 
+    
+    t.qtrtype AS entitledtype, e.qtrres, e.ownhouse, e.ownname, 
+    e.ownadd AS owneraddress, e.ishouseeightkm AS ishouseletout, 
+    e.ownrent AS rentreceived, e.permtemp, e.surname AS suretyname, 
+    e.surpost AS suretydesignation, e.surdesig AS suretypost, e.ess, e.cco
+FROM eqtrapply e
+LEFT JOIN empmast em ON e.empno = em.empno
+LEFT JOIN desmast d ON em.designation = d.desid
+LEFT JOIN labmast l ON em.labcode = l.labcode
+LEFT JOIN typeligibility t ON em.paylvl = t.paylvl
+LEFT JOIN FamilyDetailsCTE fd ON e.empno = fd.empno
+WHERE e.qtrappno = @qtrAppNo";
 
             using (var conn = new MySqlConnection(_connStr))
             using (var cmd = new MySqlCommand(sql, conn))
@@ -864,7 +889,30 @@ left join  empdepdtls ed on ed.empno=e.empno
 
         public QuarterApplicationPdfDto GetSAQuarterApplicationDetails(string qtrAppNo)
         {
-            const string sql1 = @"SELECT e.saint,
+            const string sql1 = @"
+    -- 1. Define the CTE to prepare the aggregated family details string first.
+    WITH FamilyDetailsCTE AS (
+        SELECT
+            empno,
+            GROUP_CONCAT(
+                CONCAT(depname, ' (', depcode, rn, ')') 
+                SEPARATOR ', '
+            ) AS AggregatedFamilyDetails
+        FROM (
+            SELECT
+                e.empno,
+                e.depname,
+                m.depcode,
+                ROW_NUMBER() OVER(PARTITION BY e.empno, m.depcode ORDER BY e.depname) AS rn
+            FROM 
+                empdep e
+            LEFT JOIN 
+                empdepmast m ON e.depid = m.depid
+        ) AS NumberedSubquery
+        GROUP BY empno
+    )
+    -- 2. Run the main query and join to the CTE.
+    SELECT e.saint,
         e.qtrres,
         e.saqtrappno AS qtrappno, 
         e.doa, 
@@ -883,7 +931,10 @@ left join  empdepdtls ed on ed.empno=e.empno
         em.doj, 
         em.basicpay,
         e.cpaccom AS accommodationdetails, 
-        ed.depname AS familydetails,
+        
+        -- 3. Select the pre-formatted string from our CTE
+        fd.AggregatedFamilyDetails AS familydetails,
+
         t.qtrtype AS entitledtype,
         e.qtrres, 
         e.ownhouse, 
@@ -900,19 +951,21 @@ left join  empdepdtls ed on ed.empno=e.empno
     LEFT JOIN desmast d ON em.designation = d.desid
     LEFT JOIN labmast l ON em.labcode = l.labcode
     LEFT JOIN typeligibility t ON em.paylvl = t.paylvl
-    LEFT JOIN empdepdtls ed ON ed.empno = e.empno
-    WHERE e.saqtrappno = @qtrAppNo
-    LIMIT 1";
+    
+    -- 4. Replace the old join with the join to our CTE
+    LEFT JOIN FamilyDetailsCTE fd ON e.empno = fd.empno
+
+    WHERE e.saqtrappno = @qtrAppNo";
 
             const string sql2 = @"SELECT e.eqtrtypesel, e.CCO, e.ess
-        FROM eqtrapply e
-        LEFT JOIN empmast em ON e.empno = em.empno
-        LEFT JOIN desmast d ON em.designation = d.desid
-        LEFT JOIN labmast l ON em.labcode = l.labcode
-        LEFT JOIN typeligibility t ON em.paylvl = t.paylvl
-        
-        WHERE e.empno = @empno
-        LIMIT 1";
+    FROM eqtrapply e
+    LEFT JOIN empmast em ON e.empno = em.empno
+    LEFT JOIN desmast d ON em.designation = d.desid
+    LEFT JOIN labmast l ON em.labcode = l.labcode
+    LEFT JOIN typeligibility t ON em.paylvl = t.paylvl
+    
+    WHERE e.empno = @empno
+    LIMIT 1";
 
             using (var conn = new MySqlConnection(_connStr))
             using (var cmd1 = new MySqlCommand(sql1, conn))
@@ -1128,10 +1181,27 @@ left join  empdepdtls ed on ed.empno=e.empno
         {
             string familyDetails = "";
 
+           
             string sql = @"
-        SELECT depname, deprel
-        FROM empdepdtls
-        WHERE empno = @empno";
+        WITH NumberedDependents AS (
+            SELECT
+                e.empno,
+                e.depname,
+                m.depcode,
+                ROW_NUMBER() OVER(PARTITION BY e.empno, m.depcode ORDER BY e.depname) AS rn
+            FROM
+                empdep e
+            LEFT JOIN
+                empdepmast m ON e.depid = m.depid
+            WHERE
+                e.empno = @empno
+        )
+        SELECT
+            GROUP_CONCAT(CONCAT(depname, ' (', depcode, rn, ')') SEPARATOR ', ') AS FamilyDetails
+        FROM
+            NumberedDependents
+        GROUP BY
+            empno;";
 
             using (var connection = new MySqlConnection(_connStr))
             {
@@ -1143,17 +1213,14 @@ left join  empdepdtls ed on ed.empno=e.empno
 
                     using (var reader = command.ExecuteReader())
                     {
-                        var parts = new List<string>();
-
-                        while (reader.Read())
+                        
+                        if (reader.Read())
                         {
-                            string depname = reader["depname"].ToString();
-                            string deprel = reader["deprel"].ToString();
-
-                            parts.Add($"{depname}({deprel})");
+                            if (reader["FamilyDetails"] != DBNull.Value)
+                            {
+                                familyDetails = reader["FamilyDetails"].ToString();
+                            }
                         }
-
-                        familyDetails = string.Join(",", parts);
                     }
                 }
             }
