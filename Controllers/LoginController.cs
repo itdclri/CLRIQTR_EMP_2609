@@ -88,5 +88,30 @@ namespace CLRIQTR_EMP.Controllers
             Session.Abandon();
             return RedirectToAction("Index", "Login");
         }
+
+
+        
+       
+
+        public ActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult SendPasswordRecoveryEmail(string employeeNumber)
+        {
+            // Use the service to send recovery email and get the response message
+            string resultMessage = _loginRepository.SendPasswordRecoveryEmail(employeeNumber);
+
+            //string resultMessage = employeeDataAccess.SendMail(employeeNumber);
+
+            // Display the result message to the user
+            ViewBag.Message = resultMessage;
+
+            return View("ForgotPassword");
+        }
+
+
     }
 }

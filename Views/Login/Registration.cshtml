@@ -73,7 +73,7 @@
                 <a class="nav-link" aria-current="page" href="@Url.Action("Index", "Login")">Login</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="https://admnquarters.clri.org/Forgotpwd/ForgotPassword" target="_blank" rel="noopener noreferrer">Forgot Password</a>
+                <a class="nav-link " aria-current="page" href="@Url.Action("ForgotPassword", "Login")">Forgot Password</a>
             </li>
         </ul>
     </div>
@@ -92,7 +92,7 @@
         @Html.AntiForgeryToken()
 
         <div class="form-group mb-3">
-            <label>Lab</label><br />
+            @*<label>Lab</label><br />*@
             <div class="form-check form-check-inline">
                 @Html.RadioButtonFor(m => m.lab, "CLRI", new { @class = "form-check-input", id = "labCLRI" })
                 <label class="form-check-label" for="labCLRI">CLRI</label>

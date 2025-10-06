@@ -17,28 +17,32 @@
             <div class="d-flex align-items-center">
                 <img src="@Url.Content("~/Content/Images/CSIR-Logo.jpg")" alt="CSIR Logo"
                      style="height:120px; width:auto; margin-right:20px;" />
-                <p class="text2 mb-0" style="color:white; font-size: 1.1rem; line-height: 1.4;">
-                    Council of Scientific &amp; Industrial Research (CSIR), <br>
-                    Ministry of Science and Technology, Govt of India
-                </p>
+
+                @Html.ActionLink("Quarters Management Admin Portal", "Index", "Admin", new { area = "" }, new { @class = "navbar-brand mx-3", style = "font-size: 1.25rem;" })
+
             </div>
 
             <!-- Center: Quarters Management link -->
-            @Html.ActionLink("Quarters Management", "Index", "Home", new { area = "" }, new { @class = "navbar-brand mx-3", style = "font-size: 1.4rem;" })
+
+            <p class="text2 mb-0" style="color:white; font-size: 1.25rem; line-height: 1.4;">
+                CSIR - Central Leather Research Institute
+            </p>
+
 
             <!-- Right: right logo + logout button -->
-        <div class="d-flex align-items-center">
-
 
             <ul class="navbar-nav mb-0">
                 <li class="nav-item">
-                    @Html.ActionLink("Logout", "Logout", "Login", null, new { @class = "nav-link text-danger", style = "font-size: 1.1rem;" })
+                    @Html.ActionLink("Logout", "Logout", "Admin", null, new { @class = "nav-link text-danger", style = "font-size: 1.1rem;" })
                 </li>
             </ul>
 
-            <img src="@Url.Content("~/Content/Images/CLRI-logo.png")" alt="CLRI Logo"
-                 style="height:120px; width:auto; margin-right:20px;" />
-        </div>
+            <div class="d-flex align-items-center">
+                <img src="@Url.Content("~/Content/Images/CLRI-logo.png")" alt="CLRI Logo"
+                     style="height:120px; width:auto; margin-right:20px;" />
+
+
+            </div>
 
         </div>
     </nav>
