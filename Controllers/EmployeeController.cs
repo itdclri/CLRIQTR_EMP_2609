@@ -26,22 +26,11 @@ namespace CLRIQTR_EMP.Controllers
                     TempData["ErrorMessage"] = "Please login to view employee details.";
                     return RedirectToAction("Index", "Login");
                 }
-                // Condition 1: Check if quarters are already allotted (status 'O')
-                if (_employeeRepo.HasQuarterWithStatus(empNo, "O"))
-                {
-                    // Use a "Warning" key as this is a business rule, not a system error.
-                    TempData["WarningMessage"] = "You are already in possession of a quarter and cannot start a new application.";
 
-                    // Redirect to the main dashboard or home page, as it is a more logical destination.
+                if (!_employeeRepo.CanApplyForNewQuarter(empNo))
+                {
+                    TempData["WarningMessage"] = "You are already in possession of a quarters and cannot start a new application.";
                     return RedirectToAction("Index", "Home");
-                }
-
-
-                //  Condition 2: Check if there's any draft application
-                if (_employeeRepo.HasDraftApplication(empNo))
-                {
-                    Debug.WriteLine("Condition2");
-                    return RedirectToAction("ViewDrafts", "Employee");
                 }
 
                 //  Original Flow: Get employee details
@@ -49,13 +38,12 @@ namespace CLRIQTR_EMP.Controllers
 
                 if (employee == null)
                 {
-                    Debug.WriteLine("Condition3");
                     TempData["ErrorMessage"] = $"Employee with ID {empNo} not found.Contact Admin.";
                     return RedirectToAction("Index", "Login");
                 }
 
+              
 
-                
 
                 return View(employee);
             }

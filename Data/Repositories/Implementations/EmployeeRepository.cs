@@ -633,49 +633,65 @@ WHERE
             return drafts;
         }
 
-        public bool HasQuarterWithStatus(string empNo, string status)
+        public bool CanApplyForNewQuarter(string empNo)
         {
-            if (string.IsNullOrEmpty(empNo) || string.IsNullOrEmpty(status))
+            if (string.IsNullOrEmpty(empNo))
             {
-                Debug.WriteLine("HasQuarterWithStatus: empNo or status is null or empty");
                 return false;
             }
 
-            Debug.WriteLine($"Checking for empNo: {empNo}, status: {status}");
-
-            // Modified query using EXISTS for better performance and clarity.
+           
             const string sql = @"
-        SELECT EXISTS (
-            SELECT 1 
-            FROM QtrUpd 
-            WHERE EmpNo = @empNo AND qtrstatus = @status
-        )";
+        SELECT
+            CASE
+                WHEN
+                    GROUP_CONCAT(DISTINCT typeligibility.qtrtype) = qtrupd.qtrtype
+                    AND
+                    GROUP_CONCAT(DISTINCT CASE WHEN saeligibility.saeligible = 'Y' THEN 'SA' END) IS NULL
+                THEN 0 -- Cannot apply
+                ELSE 1 -- Can apply
+            END AS eligibility_flag
+        FROM
+            qtrupd
+        INNER JOIN
+            empmast ON qtrupd.empno = empmast.empno
+        INNER JOIN
+            typeligibility ON empmast.paylvl = typeligibility.paylvl
+        LEFT JOIN
+            saeligibility ON empmast.paylvl = saeligibility.paylvl
+        WHERE
+            qtrupd.empno = @empNo
+            AND qtrupd.qtrstatus = 'O'
+        GROUP BY
+            qtrupd.qtrtype;
+    ";
 
             try
             {
                 using (var conn = new MySqlConnection(_connStr))
                 {
                     conn.Open();
-                    Debug.WriteLine("HasQuarterWithStatus: Database connection opened successfully");
-
                     using (var cmd = new MySqlCommand(sql, conn))
                     {
                         cmd.Parameters.AddWithValue("@empNo", empNo);
-                        cmd.Parameters.AddWithValue("@status", status);
 
                         var result = cmd.ExecuteScalar();
-                        Debug.WriteLine($"HasQuarterWithStatus: Query executed, result: {result}");
 
-                        // The result of EXISTS is 1 (true) or 0 (false).
-                        // This logic correctly handles the result.
-                        return Convert.ToInt32(result) > 0;
+                        
+                        if (result == null || result is DBNull)
+                        {
+                            return true;
+                        }
+
+                        
+                        return Convert.ToInt32(result) == 1;
                     }
                 }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"HasQuarterWithStatus Error: {ex.Message}");
-                return false; // Return false on any database error.
+                return false;
             }
         }
 
