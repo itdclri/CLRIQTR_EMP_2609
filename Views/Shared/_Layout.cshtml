@@ -18,7 +18,7 @@
                 <img src="@Url.Content("~/Content/Images/CSIR-Logo.jpg")" alt="CSIR Logo"
                      style="height:120px; width:auto; margin-right:20px;" />
 
-                @Html.ActionLink("Quarters Management Admin Portal", "Index", "Admin", new { area = "" }, new { @class = "navbar-brand mx-3", style = "font-size: 1.25rem;" })
+                @Html.ActionLink("Quarters Management Admin Portal", "Index", "Login", new { area = "" }, new { @class = "navbar-brand mx-3", style = "font-size: 1.25rem;" })
 
             </div>
 
@@ -31,11 +31,7 @@
 
             <!-- Right: right logo + logout button -->
 
-            <ul class="navbar-nav mb-0">
-                <li class="nav-item">
-                    @Html.ActionLink("Logout", "Logout", "Admin", null, new { @class = "nav-link text-danger", style = "font-size: 1.1rem;" })
-                </li>
-            </ul>
+           
 
             <div class="d-flex align-items-center">
                 <img src="@Url.Content("~/Content/Images/CLRI-logo.png")" alt="CLRI Logo"

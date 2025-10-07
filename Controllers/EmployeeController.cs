@@ -17,34 +17,43 @@ namespace CLRIQTR_EMP.Controllers
 
         public ActionResult Index()
         {
+
             try
             {
                 var empNo = Session["EmpNo"]?.ToString();
                 if (string.IsNullOrEmpty(empNo))
                 {
                     TempData["ErrorMessage"] = "Please login to view employee details.";
-                    return RedirectToAction("Login", "Account");
+                    return RedirectToAction("Index", "Login");
                 }
-                // Condition 1: Check if quarters already allotted (status 'O')
+                // Condition 1: Check if quarters are already allotted (status 'O')
                 if (_employeeRepo.HasQuarterWithStatus(empNo, "O"))
                 {
-                    TempData["WarningMessage"] = "Already you have a quarters";
+                    // Use a "Warning" key as this is a business rule, not a system error.
+                    TempData["WarningMessage"] = "You are already in possession of a quarter and cannot start a new application.";
+
+                    // Redirect to the main dashboard or home page, as it is a more logical destination.
+                    return RedirectToAction("Index", "Home");
                 }
 
-             
+
                 //  Condition 2: Check if there's any draft application
                 if (_employeeRepo.HasDraftApplication(empNo))
                 {
+                    Debug.WriteLine("Condition2");
                     return RedirectToAction("ViewDrafts", "Employee");
                 }
 
                 //  Original Flow: Get employee details
                 var employee = _employeeRepo.GetEmployeeByEmpNo(empNo);
+
                 if (employee == null)
                 {
-                    TempData["ErrorMessage"] = $"Employee with ID {empNo} not found.";
-                    return RedirectToAction("Index", "Home");
+                    Debug.WriteLine("Condition3");
+                    TempData["ErrorMessage"] = $"Employee with ID {empNo} not found.Contact Admin.";
+                    return RedirectToAction("Index", "Login");
                 }
+
 
                 
 

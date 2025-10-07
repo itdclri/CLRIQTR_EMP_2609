@@ -633,17 +633,6 @@ WHERE
             return drafts;
         }
 
-
-
-
-
-
-        
-
-
-
-
-
         public bool HasQuarterWithStatus(string empNo, string status)
         {
             if (string.IsNullOrEmpty(empNo) || string.IsNullOrEmpty(status))
@@ -652,13 +641,15 @@ WHERE
                 return false;
             }
 
-            Debug.WriteLine(empNo);
-            Debug.WriteLine(status);
+            Debug.WriteLine($"Checking for empNo: {empNo}, status: {status}");
 
+            // Modified query using EXISTS for better performance and clarity.
             const string sql = @"
-        SELECT COUNT(1)
-        FROM QtrUpd
-        WHERE EmpNo = @empNo AND qtrstatus = @status";
+        SELECT EXISTS (
+            SELECT 1 
+            FROM QtrUpd 
+            WHERE EmpNo = @empNo AND qtrstatus = @status
+        )";
 
             try
             {
@@ -675,6 +666,8 @@ WHERE
                         var result = cmd.ExecuteScalar();
                         Debug.WriteLine($"HasQuarterWithStatus: Query executed, result: {result}");
 
+                        // The result of EXISTS is 1 (true) or 0 (false).
+                        // This logic correctly handles the result.
                         return Convert.ToInt32(result) > 0;
                     }
                 }
@@ -682,10 +675,52 @@ WHERE
             catch (Exception ex)
             {
                 Debug.WriteLine($"HasQuarterWithStatus Error: {ex.Message}");
-                Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
-                return false;
+                return false; // Return false on any database error.
             }
         }
+
+        //public bool HasQuarterWithStatus(string empNo, string status)
+        //{
+        //    if (string.IsNullOrEmpty(empNo) || string.IsNullOrEmpty(status))
+        //    {
+        //        Debug.WriteLine("HasQuarterWithStatus: empNo or status is null or empty");
+        //        return false;
+        //    }
+
+        //    Debug.WriteLine(empNo);
+        //    Debug.WriteLine(status);
+
+        //    const string sql = @"
+        //SELECT COUNT(1)
+        //FROM QtrUpd
+        //WHERE EmpNo = @empNo AND qtrstatus = @status";
+
+        //    try
+        //    {
+        //        using (var conn = new MySqlConnection(_connStr))
+        //        {
+        //            conn.Open();
+        //            Debug.WriteLine("HasQuarterWithStatus: Database connection opened successfully");
+
+        //            using (var cmd = new MySqlCommand(sql, conn))
+        //            {
+        //                cmd.Parameters.AddWithValue("@empNo", empNo);
+        //                cmd.Parameters.AddWithValue("@status", status);
+
+        //                var result = cmd.ExecuteScalar();
+        //                Debug.WriteLine($"HasQuarterWithStatus: Query executed, result: {result}");
+
+        //                return Convert.ToInt32(result) > 0;
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Debug.WriteLine($"HasQuarterWithStatus Error: {ex.Message}");
+        //        Debug.WriteLine($"Stack Trace: {ex.StackTrace}");
+        //        return false;
+        //    }
+        //}
 
         public bool HasDraftApplication(string empNo)
         {
