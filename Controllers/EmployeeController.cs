@@ -155,91 +155,7 @@ namespace CLRIQTR_EMP.Controllers
 
 
 
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public ActionResult SubmitApplication(NewApplicationModel model, string action)
-        //{
-        //    var empNo = Session["EmpNo"]?.ToString();
-        //    if (string.IsNullOrEmpty(empNo))
-        //        return RedirectToAction("Login", "Account");
-
-        //    var quarterType = _employeeRepo.GetQuarterTypeByEmpNo(empNo);
-        //    model.QuarterType = quarterType;
-
-        //    // Check for physical disability
-        //    bool hasPhysicalDisability = _employeeRepo.HasPhysicalDisability(empNo);
-        //    model.ShowDisabilityFields = hasPhysicalDisability;
-
-        //    bool savedeqtr = false;
-        //    bool savedsaqtr = false;
-        //    string appStatus = "D"; // Default: Draft
-
-        //    if (action == "Submit")
-        //        appStatus = "C"; // Completed/Submitted
-
-        //    Debug.WriteLine("Line1");
-
-        //    bool ApplyingForQuarters = Session["ApplyingForQuarters"] != null
-        //        ? Convert.ToBoolean(Session["ApplyingForQuarters"])
-        //        : _employeeRepo.GetApplyingForQuartersFromDb(empNo);
-
-        //    Debug.WriteLine("Line2");
-
-
-        //    bool ApplyingForScientistQuarters = Session["ApplyingForScientistQuarters"] != null
-        //        ? Convert.ToBoolean(Session["ApplyingForScientistQuarters"])
-        //        : _employeeRepo.GetApplyingForScientistQuartersFromDb(empNo);
-
-        //    Debug.WriteLine("Line3");
-
-
-
-        //    if (ApplyingForQuarters)
-        //    {
-        //        Debug.WriteLine("Line4");
-
-        //        var entity = MapToEqtrApply(model);
-        //        entity.EmpNo = empNo;
-        //        entity.AppStatus = appStatus;
-        //        entity.EqtrTypeSel = "Y";
-        //        entity.Saint = "SNI";
-        //        if (ApplyingForScientistQuarters)
-        //            entity.Saint = "SI";
-        //        savedeqtr = string.IsNullOrEmpty(model.QtrAppNo)
-        //        ? _employeeRepo.InsertEqtrApply(entity)
-        //        : _employeeRepo.UpdateEqtrApply(entity);
-        //    }
-
-        //    if (ApplyingForScientistQuarters)
-        //    {
-        //        Debug.WriteLine("Line5");
-
-        //        var entity = MapToSaEqtrApply(model);
-        //        entity.EmpNo = empNo;
-        //        entity.AppStatus = appStatus;
-        //        entity.Saint = "SI";
-        //        entity.SaQtrAppNo = model.QtrAppNo;
-        //        savedsaqtr = string.IsNullOrEmpty(model.QtrAppNo)
-        //            ? _employeeRepo.InsertSaEqtrApply(entity)
-        //            : _employeeRepo.UpdateSaEqtrApply(entity);
-        //    }
-
-
-        //    if (savedeqtr || savedsaqtr)
-        //    {
-        //        Debug.WriteLine("Line6");
-
-
-        //        TempData["Message"] = appStatus == "D"
-        //            ? "Draft saved successfully!"
-        //            : "Application submitted successfully!";
-
-        //        return RedirectToAction("ViewDrafts");
-        //    }
-
-        //    ModelState.AddModelError("", "Error saving application.");
-        //    return View(model);
-        //}
+        
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -288,7 +204,7 @@ namespace CLRIQTR_EMP.Controllers
                 // Ensure it has its own QtrAppNo
                 if (string.IsNullOrEmpty(model.QtrAppNo))
                 {
-                    entity.QtrAppNo = _employeeRepo.GenerateNewEqtrAppNo(); // New method
+                    entity.QtrAppNo = _employeeRepo.GenerateNewEqtrAppNo(empNo); // New method
                     model.QtrAppNo = entity.QtrAppNo; // Save back to model for linking
                     savedeqtr = _employeeRepo.InsertEqtrApply(entity);
 
@@ -324,7 +240,7 @@ namespace CLRIQTR_EMP.Controllers
                 // Generate separate app no for SAQTR
                 else
                 {
-                    entity.SaQtrAppNo = _employeeRepo.GenerateNewSaEqtrAppNo(); // New method
+                    entity.SaQtrAppNo = _employeeRepo.GenerateNewSaEqtrAppNo(empNo); // New method
                     model.SaQtrAppNo = entity.SaQtrAppNo;
                     savedsaqtr = _employeeRepo.InsertSaEqtrApply(entity);
 
@@ -527,7 +443,7 @@ namespace CLRIQTR_EMP.Controllers
 
             // Clean and split input
             var tokens = qtrAppNo
-                .Split(new[] { '\n', ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries)
                 .Distinct()
                 .ToList();
 

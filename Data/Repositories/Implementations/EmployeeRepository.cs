@@ -133,7 +133,16 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
             }
         }
 
-       
+
+        private string GetQtrResValue(string empNo, MySqlConnection conn)
+        {
+            var checkCmd = new MySqlCommand("SELECT COUNT(*) FROM qtrupd WHERE empno = @empno AND qtrstatus = 'O'", conn);
+            checkCmd.Parameters.AddWithValue("@empno", empNo);
+
+            long count = (long)checkCmd.ExecuteScalar();
+
+            return count > 0 ? "IQ" : "OQ";
+        }
 
 
         public bool InsertEqtrApply(EqtrApply entity)
@@ -144,11 +153,10 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                 {
                     conn.Open();
 
-                    // Generate qtrappno if not set
-                    if (string.IsNullOrEmpty(entity.QtrAppNo))
-                    {
-                        entity.QtrAppNo = $"{entity.EmpNo}_{DateTime.Now:yyyyMMddHHmmss}";
-                    }
+
+                    string qtrresValue = GetQtrResValue(entity.EmpNo, conn);
+
+                   
 
                     var cmd = new MySqlCommand(@"
          INSERT INTO eqtrapply
@@ -175,7 +183,7 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                     cmd.Parameters.AddWithValue("@saint", entity.Saint ?? "NA");
                     cmd.Parameters.AddWithValue("@doa", entity.Doa ?? DateTime.Now.ToString("yyyy-MM-dd"));
                     cmd.Parameters.AddWithValue("@toe", entity.Toe ?? "NA");
-                    cmd.Parameters.AddWithValue("@qtrres", entity.QtrRes ?? "NA");
+                    cmd.Parameters.AddWithValue("@qtrres", qtrresValue ?? "NA");
                     cmd.Parameters.AddWithValue("@empmobno", entity.EmpMobNo ?? "NA");
                     cmd.Parameters.AddWithValue("@appstatus", entity.AppStatus ?? "D");
                     cmd.Parameters.AddWithValue("@permtemp", entity.PermTemp ?? "NA");
@@ -187,6 +195,7 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                     cmd.Parameters.AddWithValue("@ess", entity.Ess ?? "NA");
                     cmd.Parameters.AddWithValue("@cco", entity.Cco ?? "NA");
                     cmd.Parameters.AddWithValue("@disdesc", entity.DisDesc ?? "NA");
+
 
                     int rows = cmd.ExecuteNonQuery();
                     return rows > 0;
@@ -208,11 +217,9 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                 {
                     conn.Open();
 
-                    // Generate saqtrappno if not set
-                    if (string.IsNullOrEmpty(entity.SaQtrAppNo))
-                    {
-                        entity.SaQtrAppNo = $"{entity.EmpNo}_SA_{DateTime.Now:yyyyMMddHHmmss}";
-                    }
+                    string qtrresValue = GetQtrResValue(entity.EmpNo, conn);
+
+                   
 
                     var cmd = new MySqlCommand(@"
                 INSERT INTO saeqtrapply
@@ -239,7 +246,7 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                     cmd.Parameters.AddWithValue("@saint", entity.Saint ?? "NA");
                     cmd.Parameters.AddWithValue("@doa", entity.Doa ?? DateTime.Now.ToString("yyyy-MM-dd"));
                     cmd.Parameters.AddWithValue("@toe", entity.Toe ?? "NA");
-                    cmd.Parameters.AddWithValue("@qtrres", entity.QtrRes ?? "NA");
+                    cmd.Parameters.AddWithValue("@qtrres", qtrresValue ?? "NA");
                     cmd.Parameters.AddWithValue("@empmobno", entity.EmpMobNo ?? "NA");
                     cmd.Parameters.AddWithValue("@appstatus", entity.AppStatus ?? "D");
                     cmd.Parameters.AddWithValue("@permtemp", entity.PermTemp ?? "NA");
@@ -266,6 +273,8 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                 using (var conn = new MySqlConnection(_connStr))
                 {
                     conn.Open();
+
+                    string qtrresValue = GetQtrResValue(entity.EmpNo, conn);
 
                     var cmd = new MySqlCommand(@"
                 UPDATE eqtrapply SET
@@ -308,7 +317,7 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                     cmd.Parameters.AddWithValue("@saint", entity.Saint ?? "NA");
                     cmd.Parameters.AddWithValue("@doa", entity.Doa ?? DateTime.Now.ToString("yyyy-MM-dd"));
                     cmd.Parameters.AddWithValue("@toe", entity.Toe ?? "NA");
-                    cmd.Parameters.AddWithValue("@qtrres", entity.QtrRes ?? "NA");
+                    cmd.Parameters.AddWithValue("@qtrres", qtrresValue ?? "NA");
                     cmd.Parameters.AddWithValue("@empmobno", entity.EmpMobNo ?? "NA");
                     cmd.Parameters.AddWithValue("@appstatus", entity.AppStatus ?? "Pending");
                     cmd.Parameters.AddWithValue("@permtemp", entity.PermTemp ?? "NA");
@@ -342,6 +351,8 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                 using (var conn = new MySqlConnection(_connStr))
                 {
                     conn.Open();
+
+                    string qtrresValue = GetQtrResValue(entity.EmpNo, conn);
 
                     var cmd = new MySqlCommand(@"
     UPDATE saeqtrapply SET
@@ -380,7 +391,7 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                     cmd.Parameters.AddWithValue("@saint", entity.Saint ?? "NA");
                     cmd.Parameters.AddWithValue("@doa", entity.Doa ?? DateTime.Now.ToString("yyyy-MM-dd"));
                     cmd.Parameters.AddWithValue("@toe", entity.Toe ?? "NA");
-                    cmd.Parameters.AddWithValue("@qtrres", entity.QtrRes ?? "NA");
+                    cmd.Parameters.AddWithValue("@qtrres", qtrresValue ?? "NA");
                     cmd.Parameters.AddWithValue("@empmobno", entity.EmpMobNo ?? "NA");
                     cmd.Parameters.AddWithValue("@appstatus", entity.AppStatus ?? "Pending");
                     cmd.Parameters.AddWithValue("@permtemp", entity.PermTemp ?? "NA");
@@ -571,7 +582,7 @@ const string sql = @"SELECT qtrappno, appstatus, empno, ownhouse, ownname, ownad
             const string sql = @"
         -- Get records that are in eq and have a match in sa
 SELECT 
-    CONCAT(IFNULL(eq.qtrappno, ''), IF(eq.qtrappno IS NOT NULL AND sa.saqtrappno IS NOT NULL, '\n', ''), IFNULL(sa.saqtrappno, '')) AS qtrappno,
+    CONCAT(IFNULL(eq.qtrappno, ''), IF(eq.qtrappno IS NOT NULL AND sa.saqtrappno IS NOT NULL, ' ', ''), IFNULL(sa.saqtrappno, '')) AS qtrappno,
     COALESCE(eq.doa, sa.doa) AS doa,
     COALESCE(eq.appstatus, sa.appstatus) AS appstatus
 FROM 
@@ -585,7 +596,7 @@ UNION
 
 -- Get records that are in sa but have no match in eq
 SELECT 
-    CONCAT(IFNULL(eq.qtrappno, ''), IF(eq.qtrappno IS NOT NULL AND sa.saqtrappno IS NOT NULL, '\n', ''), IFNULL(sa.saqtrappno, '')) AS qtrappno,
+    CONCAT(IFNULL(eq.qtrappno, ''), IF(eq.qtrappno IS NOT NULL AND sa.saqtrappno IS NOT NULL, ' ', ''), IFNULL(sa.saqtrappno, '')) AS qtrappno,
     COALESCE(eq.doa, sa.doa) AS doa,
     COALESCE(eq.appstatus, sa.appstatus) AS appstatus
 FROM 
@@ -1143,22 +1154,102 @@ WHERE e.saqtrappno = @qtrAppNo";
         }
 
 
-        // <summary>
-        /// Generates a new, incremented application number for the 'eqtrapply' table.
-        /// Format: QTR/CLRI/YYYY/100001
+        /// <summary>
+        /// Gets the lab name for an employee by joining empmast and labmast tables.
         /// </summary>
-        public string GenerateNewEqtrAppNo()
+        /// <param name="empNo">The employee's number.</param>
+        /// <returns>The lab name, or "CLRI" as a fallback.</returns>
+        private string GetLabNameForEmployee(string empNo)
         {
-            string lastAppNo = GetLastEqtrAppNo();
-            int year = DateTime.Now.Year;
-            string prefix = $"QTR/CLRI/{year}/";
-            
+            // Use "CLRI" as a default/fallback value in case of an error or no result
+            string labName = "CLRI";
+            try
+            {
+                using (var conn = new MySqlConnection(_connStr))
+                {
+                    conn.Open();
+                    var cmd = new MySqlCommand(@"
+                SELECT T2.labname
+                FROM empmast T1
+                JOIN labmast T2 ON T1.labcode = T2.labcode
+                WHERE T1.empno = @empno", conn);
+                    cmd.Parameters.AddWithValue("@empno", empNo);
 
-            int newNumber = 100001; // Default starting number for a new year
+                    object result = cmd.ExecuteScalar();
+                    if (result != null && result != DBNull.Value)
+                    {
+                        labName = result.ToString();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("GetLabNameForEmployee error: " + ex.Message);
+            }
+            return labName;
+        }
+
+        /// <summary>
+        /// Gets the last application number for a specific lab and year.
+        /// </summary>
+        private string GetLastEqtrAppNo(string labName, int year)
+        {
+            string pattern = $"QTR/{labName}/{year}/%";
+            try
+            {
+                using (var conn = new MySqlConnection(_connStr))
+                {
+                    conn.Open();
+                    var cmd = new MySqlCommand(
+                        "SELECT qtrappno FROM eqtrapply WHERE qtrappno LIKE @pattern ORDER BY qtrappno DESC LIMIT 1", conn);
+                    cmd.Parameters.AddWithValue("@pattern", pattern);
+                    return cmd.ExecuteScalar()?.ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("GetLastEqtrAppNo error: " + ex.Message);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets the last SA application number for a specific lab and year.
+        /// </summary>
+        private string GetLastSaEqtrAppNo(string labName, int year)
+        {
+            string pattern = $"QTR/{labName}/{year}/SA/%";
+            try
+            {
+                using (var conn = new MySqlConnection(_connStr))
+                {
+                    conn.Open();
+                    var cmd = new MySqlCommand(
+                        "SELECT saqtrappno FROM saeqtrapply WHERE saqtrappno LIKE @pattern ORDER BY saqtrappno DESC LIMIT 1", conn);
+                    cmd.Parameters.AddWithValue("@pattern", pattern);
+                    return cmd.ExecuteScalar()?.ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("GetLastSaEqtrAppNo error: " + ex.Message);
+                return null;
+            }
+        }
+
+        public string GenerateNewEqtrAppNo(String empNo)
+        {
+            string labName = GetLabNameForEmployee(empNo);
+            int year = DateTime.Now.Year;
+
+            string lastAppNo = GetLastEqtrAppNo(labName, year);
+
+            string prefix = $"QTR/{labName}/{year}/";
+
+            int newNumber = 100001; // Default starting number for a new year/lab
 
             if (!string.IsNullOrEmpty(lastAppNo))
             {
-                // Extract the numeric part (e.g., "100002" from "QTR/CLRI/2025/100002")
                 string lastNumberStr = lastAppNo.Split('/').Last();
                 if (int.TryParse(lastNumberStr, out int lastNumber))
                 {
@@ -1169,21 +1260,22 @@ WHERE e.saqtrappno = @qtrAppNo";
             return prefix + newNumber;
         }
 
-        /// <summary>
-        /// Generates a new, incremented application number for the 'saeqtrapply' table.
-        /// Format: QTR/CLRI/YYYY/SA/1001
-        /// </summary>
-        public string GenerateNewSaEqtrAppNo()
+        public string GenerateNewSaEqtrAppNo(String empNo)
         {
-            string lastAppNo = GetLastSaEqtrAppNo();
+            // 1. Get the dynamic lab name for the employee
+            string labName = GetLabNameForEmployee(empNo);
             int year = DateTime.Now.Year;
-            string prefix = $"QTR/CLRI/{year}/SA/";
 
-            int newNumber = 1001; // Default starting number for a new year
+            // 2. Get the last SA app number for that specific lab and year
+            string lastAppNo = GetLastSaEqtrAppNo(labName, year);
+
+            // 3. Create the prefix with the dynamic lab name
+            string prefix = $"QTR/{labName}/{year}/SA/";
+
+            int newNumber = 1001; // Default starting number for a new year/lab
 
             if (!string.IsNullOrEmpty(lastAppNo))
             {
-                // Extract the numeric part
                 string lastNumberStr = lastAppNo.Split('/').Last();
                 if (int.TryParse(lastNumberStr, out int lastNumber))
                 {
@@ -1192,48 +1284,6 @@ WHERE e.saqtrappno = @qtrAppNo";
             }
 
             return prefix + newNumber;
-        }
-
-        /// <summary>
-        /// Gets the last application number from the 'eqtrapply' table for the current year.
-        /// </summary>
-        /// <returns>The last application number string, or null if none exist for the year.</returns>
-        public string GetLastEqtrAppNo()
-        {
-            string year = DateTime.Now.Year.ToString();
-            string prefix = $"QTR/CLRI/{year}/";
-
-            // This query finds the highest numbered application for the current year
-            string sql = @"SELECT qtrappno FROM eqtrapply
-                       WHERE qtrappno LIKE @prefix
-                       ORDER BY qtrappno DESC
-                       LIMIT 1;";
-
-            using (var connection = new MySqlConnection(_connStr))
-            {
-                return connection.QuerySingleOrDefault<string>(sql, new { prefix = prefix + "%" });
-            }
-        }
-
-        /// <summary>
-        /// Gets the last application number from the 'saeqtrapply' table for the current year.
-        /// </summary>
-        /// <returns>The last application number string, or null if none exist for the year.</returns>
-        public string GetLastSaEqtrAppNo()
-        {
-            string year = DateTime.Now.Year.ToString();
-            string prefix = $"QTR/CLRI/{year}/SA/";
-
-            // This query finds the highest numbered application for the SA type for the current year
-            string sql = @"SELECT saqtrappno FROM saeqtrapply
-                       WHERE saqtrappno LIKE @prefix
-                       ORDER BY saqtrappno DESC
-                       LIMIT 1;";
-
-            using (var connection = new MySqlConnection(_connStr))
-            {
-                return connection.QuerySingleOrDefault<string>(sql, new { prefix = prefix + "%" });
-            }
         }
 
         public string GetFamilyDetailsByEmpNo(string empno)
