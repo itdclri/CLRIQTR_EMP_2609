@@ -643,9 +643,9 @@ WHERE
            
             const string sql = @"
         SELECT
-    GROUP_CONCAT(DISTINCT typeligibility.qtrtype) AS EligibleTypes,
-    qtrupd.qtrtype AS OccupiedType,
-    GROUP_CONCAT(DISTINCT CASE WHEN saeligibility.saeligible = 'Y' THEN 'SA' END) AS SA_Eligibility,
+   -- GROUP_CONCAT(DISTINCT typeligibility.qtrtype) AS EligibleTypes,
+    -- qtrupd.qtrtype AS OccupiedType,
+    -- GROUP_CONCAT(DISTINCT CASE WHEN saeligibility.saeligible = 'Y' THEN 'SA' END) AS SA_Eligibility,
     CASE
         WHEN
             FIND_IN_SET(
