@@ -33,6 +33,11 @@ namespace CLRIQTR_EMP.Controllers
                     return RedirectToAction("Index", "Home");
                 }
 
+                if (_employeeRepo.HasDraftApplication(empNo))
+                {
+                    TempData["WarningMessage"] = "You already have a completed application or draft in My Applications Tab.";
+                }
+
                 //  Original Flow: Get employee details
                 var employee = _employeeRepo.GetEmployeeByEmpNo(empNo);
 
@@ -522,7 +527,7 @@ namespace CLRIQTR_EMP.Controllers
 
             // Clean and split input
             var tokens = qtrAppNo
-                .Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Split(new[] { '\n', ',' }, StringSplitOptions.RemoveEmptyEntries)
                 .Distinct()
                 .ToList();
 

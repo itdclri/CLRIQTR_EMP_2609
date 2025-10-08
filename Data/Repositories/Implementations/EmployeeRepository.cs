@@ -571,7 +571,7 @@ const string sql = @"SELECT qtrappno, appstatus, empno, ownhouse, ownname, ownad
             const string sql = @"
         -- Get records that are in eq and have a match in sa
 SELECT 
-    CONCAT(IFNULL(eq.qtrappno, ''), IF(eq.qtrappno IS NOT NULL AND sa.saqtrappno IS NOT NULL, ' ', ''), IFNULL(sa.saqtrappno, '')) AS qtrappno,
+    CONCAT(IFNULL(eq.qtrappno, ''), IF(eq.qtrappno IS NOT NULL AND sa.saqtrappno IS NOT NULL, '\n', ''), IFNULL(sa.saqtrappno, '')) AS qtrappno,
     COALESCE(eq.doa, sa.doa) AS doa,
     COALESCE(eq.appstatus, sa.appstatus) AS appstatus
 FROM 
@@ -585,7 +585,7 @@ UNION
 
 -- Get records that are in sa but have no match in eq
 SELECT 
-    CONCAT(IFNULL(eq.qtrappno, ''), IF(eq.qtrappno IS NOT NULL AND sa.saqtrappno IS NOT NULL, ' ', ''), IFNULL(sa.saqtrappno, '')) AS qtrappno,
+    CONCAT(IFNULL(eq.qtrappno, ''), IF(eq.qtrappno IS NOT NULL AND sa.saqtrappno IS NOT NULL, '\n', ''), IFNULL(sa.saqtrappno, '')) AS qtrappno,
     COALESCE(eq.doa, sa.doa) AS doa,
     COALESCE(eq.appstatus, sa.appstatus) AS appstatus
 FROM 
@@ -643,27 +643,33 @@ WHERE
            
             const string sql = @"
         SELECT
-            CASE
-                WHEN
-                    GROUP_CONCAT(DISTINCT typeligibility.qtrtype) = qtrupd.qtrtype
-                    AND
-                    GROUP_CONCAT(DISTINCT CASE WHEN saeligibility.saeligible = 'Y' THEN 'SA' END) IS NULL
-                THEN 0 -- Cannot apply
-                ELSE 1 -- Can apply
-            END AS eligibility_flag
-        FROM
-            qtrupd
-        INNER JOIN
-            empmast ON qtrupd.empno = empmast.empno
-        INNER JOIN
-            typeligibility ON empmast.paylvl = typeligibility.paylvl
-        LEFT JOIN
-            saeligibility ON empmast.paylvl = saeligibility.paylvl
-        WHERE
-            qtrupd.empno = @empNo
-            AND qtrupd.qtrstatus = 'O'
-        GROUP BY
-            qtrupd.qtrtype;
+    GROUP_CONCAT(DISTINCT typeligibility.qtrtype) AS EligibleTypes,
+    qtrupd.qtrtype AS OccupiedType,
+    GROUP_CONCAT(DISTINCT CASE WHEN saeligibility.saeligible = 'Y' THEN 'SA' END) AS SA_Eligibility,
+    CASE
+        WHEN
+            FIND_IN_SET(
+                SUBSTRING_INDEX(qtrupd.qtrtype, ' ', 1),
+                GROUP_CONCAT(DISTINCT typeligibility.qtrtype)
+            ) > 0
+            AND
+            GROUP_CONCAT(DISTINCT CASE WHEN saeligibility.saeligible = 'Y' THEN 'SA' END) IS NULL
+        THEN 0 -- Cannot apply (eligible for the same type, no SA)
+        ELSE 1 -- Can apply
+    END AS eligibility_flag
+FROM
+    qtrupd
+INNER JOIN
+    empmast ON qtrupd.empno = empmast.empno
+INNER JOIN
+    typeligibility ON empmast.paylvl = typeligibility.paylvl
+LEFT JOIN
+    saeligibility ON empmast.paylvl = saeligibility.paylvl
+WHERE
+    qtrupd.empno = @empNo
+    AND qtrupd.qtrstatus = 'O'
+GROUP BY
+    qtrupd.qtrtype
     ";
 
             try
