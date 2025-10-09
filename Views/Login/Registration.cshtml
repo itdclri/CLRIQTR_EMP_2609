@@ -67,20 +67,20 @@
     <div class="container">
         <ul class="navbar-nav me-auto">
             <li class="nav-item">
-                <a class="nav-link active" href="@Url.Action("Registration", "Login")">Registration</a>
+                <a class="nav-link active" href="@Url.Action("Registration", "Login")"> <i class="bi bi-person-plus-fill"></i> Registration</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" aria-current="page" href="@Url.Action("Index", "Login")">Login</a>
+                <a class="nav-link" aria-current="page" href="@Url.Action("Index", "Login")"> <i class="bi bi-box-arrow-in-right"></i> Login</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link " aria-current="page" href="@Url.Action("ForgotPassword", "Login")">Forgot Password</a>
+                <a class="nav-link " aria-current="page" href="@Url.Action("ForgotPassword", "Login")"><i class="bi bi-key-fill"></i> Forgot Password</a>
             </li>
         </ul>
     </div>
 </nav>
 
 <div class="registration-container">
-    <h2>Employee Registration</h2>
+    <h2><i class="bi bi-house-door-fill"></i> Employee Registration</h2>
 
     @if (TempData["Success"] != null)
     {
@@ -109,17 +109,18 @@
         </div>
 
         <div class="form-group mb-3">
-            <label for="empno">Employee Number</label>
+            <label for="empno"><i class="bi bi-person-badge"></i> Employee Number</label>
             @Html.TextBoxFor(m => m.empno, new { @class = "form-control", placeholder = "Enter Employee Number", id = "empno" })
             @Html.ValidationMessageFor(m => m.empno, "", new { @class = "text-danger" })
         </div>
 
         <div class="form-group mb-4">
-            <label for="pwd">Password</label>
+            <label for="pwd"><i class="bi bi-shield-lock-fill"></i> Password</label>
             @Html.PasswordFor(m => m.pwd, new { @class = "form-control", placeholder = "Enter Password", id = "pwd" })
             @*@Html.ValidationMessageFor(m => m.pwd, "", new { @class = "text-danger" }) <br />*@
+            <br />
             <small class="form-text text-muted">
-                Password requirements:<br />
+                 <b><i class="bi bi-ui-checks"></i> Password requirements: </b><br />
                 • 8 to 20 characters<br />
                 • At least 1 uppercase letter<br />
                 • At least 1 lowercase letter<br />
@@ -129,7 +130,7 @@
             @Html.ValidationMessageFor(m => m.pwd, "", new { @class = "text-danger" })
         </div>
 
-        <button type="submit" class="btn btn-primary">Register</button>
+        <button type="submit" class="btn btn-primary">Register  <i class="bi bi-person-plus-fill"></i></button>
     }
 </div>
 

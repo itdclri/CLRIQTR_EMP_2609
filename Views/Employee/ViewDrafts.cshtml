@@ -25,29 +25,28 @@
     <div class="container">
         <ul class="navbar-nav me-auto">
             <li class="nav-item">
-                <a class="nav-link " href="@Url.Action("Index", "Employee")">New Application</a>
+                <a class="nav-link" href="@Url.Action("Index", "Employee")">
+                    <i class="bi bi-file-earmark-plus"></i> New Application
+                </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="@Url.Action("ViewDrafts", "Employee")">My Applications</a>
+                <a class="nav-link active" aria-current="page" href="@Url.Action("ViewDrafts", "Employee")">
+                    <i class="bi bi-folder-fill"></i> My Applications
+                </a>
             </li>
-
         </ul>
 
         <div class="d-flex align-items-center ms-auto">
-
-            @* User info text with a margin on the right (me-3) *@
             <div class="navbar-text me-3">
-                Employee Number :  <b>@Session["EmpNo"]</b><br />
-
-                </b>
+                <i class="bi bi-person-badge"></i> Employee Number : <b>@Session["EmpNo"]</b>
             </div>
-
-
         </div>
 
         <ul class="navbar-nav mb-0">
             <li class="nav-item">
-                @Html.ActionLink("Logout", "Logout", "Login", null, new { @class = "nav-link text-danger", style = "font-size: 1.1rem;" })
+                <a class="nav-link text-danger" style="font-size: 1.1rem;" href="@Url.Action("Logout", "Login")">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
             </li>
         </ul>
     </div>
@@ -93,14 +92,14 @@
                         {
                             <a href="@Url.Action("SubmitApplication", "Employee", new { draftId = item.QtrAppNo })"
                                class="btn btn-success">
-                                View
+                                <i class="bi bi-eye-fill"></i> View
                             </a>
                         }
                         else if (item.Status == "C")
                         {
                             <a href="@Url.Action("DownloadPdf", "Employee", new { qtrAppNo = item.QtrAppNo })"
                                class="btn btn-primary" target="_blank">
-                                Download PDF
+                                <i class="bi bi-file-earmark-arrow-down-fill"></i> Download PDF
                             </a>
                         }
                         else if (item.Status == "E")
