@@ -4,10 +4,10 @@
         Layout = "~/Views/Shared/_Layout.cshtml";
 
         var typeOrder = new List<string>
-    {
-        "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
-        "XI", "XII", "XIII", "XIV", "XV"
-    };
+        {
+            "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
+            "XI", "XII", "XIII", "XIV", "XV"
+        };
 
         string lowerType = null;
         if (!string.IsNullOrEmpty(Model.QuarterType))
@@ -82,7 +82,6 @@
         @Html.HiddenFor(m => m.QtrAppNo)
         @Html.HiddenFor(m => m.SaQtrAppNo)
 
-        <!-- Date of Application -->
         <div class="row mb-3 align-items-center">
             <label class="col-md-6 col-form-label fw-bold">Date of Application</label>
             <div class="col-md-6">
@@ -90,7 +89,6 @@
             </div>
         </div>
 
-        <!-- Type Eligible -->
         <div class="row mb-3 align-items-center">
             <label class="col-md-6 col-form-label fw-bold">Type Eligible</label>
             <div class="col-md-6">
@@ -98,7 +96,6 @@
             </div>
         </div>
 
-        <!-- Present Residence -->
         <div class="row mb-3 align-items-center">
             @Html.LabelFor(m => m.PresentResidence, "Present Place of Residence with Full Address", htmlAttributes: new { @class = "col-md-6 col-form-label fw-bold" })
             <div class="col-md-6">
@@ -106,10 +103,6 @@
                 @Html.ValidationMessageFor(m => m.PresentResidence, "", new { @class = "text-danger" })
             </div>
         </div>
-
-        <!-- Lower Type Interest -->
-
-
 
         if (isTypeV)
         {
@@ -121,27 +114,24 @@
                 <div class="col-md-6">
                     <div class="form-check form-check-inline">
                         @Html.RadioButtonFor(
-                                      m => m.InterestedForLowerType,
-                                      "Interested",
-                                      new { @class = "form-check-input", id = "lowerYes" }
-                                  )
+                                m => m.InterestedForLowerType,
+                                "Interested",
+                                new { @class = "form-check-input", id = "lowerYes" }
+                            )
                         <label class="form-check-label fw-bold" for="lowerYes">Interested</label>
                     </div>
                     <div class="form-check form-check-inline">
                         @Html.RadioButtonFor(
-                                      m => m.InterestedForLowerType,
-                                      "Not Interested",
-                                      new { @class = "form-check-input", id = "lowerNo" }
-                                  )
+                                m => m.InterestedForLowerType,
+                                "Not Interested",
+                                new { @class = "form-check-input", id = "lowerNo" }
+                            )
                         <label class="form-check-label fw-bold" for="lowerNo">Not Interested</label>
                     </div>
                 </div>
             </div>
         }
 
-
-
-        <!-- Own House -->
         <div class="row mb-3 align-items-center">
             <label class="col-md-6 col-form-label fw-bold">Whether the applicant owns a house either in his / her own name or in the name of his / her spouse within the municipal limits of Chennai.</label>
             <div class="col-md-6">
@@ -156,7 +146,6 @@
             </div>
         </div>
 
-        <!-- Own House Details -->
         <div id="ownHouseDetails" style="display:none; margin-left:20px;">
             <div class="row mb-3 align-items-center">
                 @Html.LabelFor(m => m.OwnerName, "Owner's Name", htmlAttributes: new { @class = "col-md-6 col-form-label fw-bold" })
@@ -187,7 +176,6 @@
             </div>
         </div>
 
-        <!-- Rent Amount -->
         <div id="rentAmountDiv" style="display:none; margin-left:40px;">
             <div class="row mb-3 align-items-center">
                 <label class="col-md-6 col-form-label fw-bold">If let out, monthly rent received</label>
@@ -198,16 +186,13 @@
             </div>
         </div>
 
-        <!-- Family Details -->
         <div class="row mb-3 align-items-center">
             <label class="col-md-6 col-form-label fw-bold">Details of Family member of the applicant as defined in Allotment Rule 2 (s)</label>
             <div class="col-md-6">
-                <textarea  rows="3" type="text" readonly class="form-control-plaintext">@Model.FamilyDetails</textarea>
-                
+                <textarea rows="3" type="text" readonly class="form-control-plaintext">@Model.FamilyDetails</textarea>
             </div>
         </div>
 
-        <!-- Permanent or Temporary -->
         <div class="row mb-3 align-items-center">
             <label class="col-md-6 col-form-label fw-bold">State Whether Permanent or Temporary</label>
             <div class="col-md-6">
@@ -222,7 +207,6 @@
             </div>
         </div>
 
-        <!-- Surety Details -->
         <div id="suretyDetails" style="display:none; margin-left:20px;">
             <label class="fw-bold mb-2">If Temporary and less than 3 years service, enter surety details:</label>
             <div class="row mb-3 align-items-center">
@@ -248,7 +232,6 @@
             </div>
         </div>
 
-        <!-- Services Essential -->
         <div class="row mb-3 align-items-center">
             <label class="col-md-6 col-form-label fw-bold">Have your services been declared essential?</label>
             <div class="col-md-6">
@@ -263,7 +246,6 @@
             </div>
         </div>
 
-        <!-- Common Cadre Officer -->
         <div class="row mb-3 align-items-center">
             <label class="col-md-6 col-form-label fw-bold">Are you a Common Cadre Officer?</label>
             <div class="col-md-6">
@@ -278,6 +260,29 @@
             </div>
         </div>
 
+        <div class="row mb-3 align-items-center">
+            <label class="col-md-6 col-form-label fw-bold">Whether Spouse working in Govt.(state/central)/Autonomous/PSU entitled for accommodation</label>
+            <div class="col-md-6">
+                <div class="form-check form-check-inline">
+                    @Html.RadioButtonFor(m => m.SpouseWorking, "Yes", new { @class = "form-check-input", id = "spouseWorkingYes" })
+                    <label class="form-check-label fw-bold" for="spouseWorkingYes">Yes</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    @Html.RadioButtonFor(m => m.SpouseWorking, "No", new { @class = "form-check-input", id = "spouseWorkingNo" })
+                    <label class="form-check-label fw-bold" for="spouseWorkingNo">No</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="spouseOfficeDetails" style="display:none; margin-left:20px;">
+            <div class="row mb-3 align-items-center">
+                @Html.LabelFor(m => m.SpouseOfficeName, "Spouse's Office Name", htmlAttributes: new { @class = "col-md-6 col-form-label fw-bold" })
+                <div class="col-md-6">
+                    @Html.TextBoxFor(m => m.SpouseOfficeName, new { @class = "form-control", placeholder = "Enter Spouse's Office Name" })
+                    @Html.ValidationMessageFor(m => m.SpouseOfficeName, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
         if (Model.ShowDisabilityFields)
         {
             <div class="row mb-3 align-items-center">
@@ -312,38 +317,76 @@
 
 @section scripts {
     <script>
+        // --- Shows/hides the "Owner's Name", "Address" fields ---
         function toggleOwnHouseDetails() {
             var ownHouseYes = document.getElementById('ownHouseYes');
             var detailsDiv = document.getElementById('ownHouseDetails');
-            detailsDiv.style.display = (ownHouseYes && ownHouseYes.checked) ? 'block' : 'none';
-            if (!(ownHouseYes && ownHouseYes.checked)) {
+
+            // Show the details div only if 'Yes' is checked
+            var isChecked = (ownHouseYes && ownHouseYes.checked);
+            detailsDiv.style.display = isChecked ? 'block' : 'none';
+
+            // If 'No' is checked, also hide the rent amount div
+            if (!isChecked) {
                 document.getElementById('rentAmountDiv').style.display = 'none';
             }
         }
 
+        // --- Shows/hides the "Monthly Rent" field ---
         function toggleRentAmount() {
             var letOutYes = document.getElementById('letOutYes');
             var rentDiv = document.getElementById('rentAmountDiv');
+
+            // Show the rent div only if 'Yes' is checked
             rentDiv.style.display = (letOutYes && letOutYes.checked) ? 'block' : 'none';
         }
 
+        // --- Shows/hides the "Surety Details" ---
         function toggleSuretyDetails() {
             var tempRadio = document.getElementById('tempRadio');
             var suretyDiv = document.getElementById('suretyDetails');
+
+            // Show the surety div only if 'Temporary' is checked
             suretyDiv.style.display = (tempRadio && tempRadio.checked) ? 'block' : 'none';
         }
 
+        // --- Shows/hides the "Spouse Office Name" ---
+        function toggleSpouseOfficeDetails() {
+            var spouseYes = document.getElementById('spouseWorkingYes');
+            var detailsDiv = document.getElementById('spouseOfficeDetails');
+
+            // Show the spouse office div only if 'Yes' is checked
+            detailsDiv.style.display = (spouseYes && spouseYes.checked) ? 'block' : 'none';
+        }
+
+
+        // --- This part runs when the page first loads ---
         document.addEventListener('DOMContentLoaded', function () {
+
+            // 1. Run all functions once to set the correct state on page load
             toggleOwnHouseDetails();
             toggleRentAmount();
             toggleSuretyDetails();
+            toggleSpouseOfficeDetails();
 
+            // 2. Add "listeners" to run the functions when you click the radio buttons
+
+            // Listeners for Own House
             document.getElementById('ownHouseYes').addEventListener('change', toggleOwnHouseDetails);
             document.getElementById('ownHouseNo').addEventListener('change', toggleOwnHouseDetails);
+
+            // Listeners for Rent
             document.getElementById('letOutYes').addEventListener('change', toggleRentAmount);
             document.getElementById('letOutNo').addEventListener('change', toggleRentAmount);
+
+            // Listeners for Surety
             document.getElementById('tempRadio').addEventListener('change', toggleSuretyDetails);
             document.getElementById('permRadio').addEventListener('change', toggleSuretyDetails);
+
+            // Listeners for Spouse
+            document.getElementById('spouseWorkingYes').addEventListener('change', toggleSpouseOfficeDetails);
+            document.getElementById('spouseWorkingNo').addEventListener('change', toggleSpouseOfficeDetails);
         });
     </script>
+}
 }

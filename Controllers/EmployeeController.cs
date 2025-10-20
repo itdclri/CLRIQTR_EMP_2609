@@ -339,7 +339,9 @@ namespace CLRIQTR_EMP.Controllers
                 EqtrTypeSel = Session["ApplyingForQuarters"] is bool applyingQuarters && applyingQuarters ? "Y" : "N",
                 Ess = model.ServicesEssential == "Yes" ? "Y" : "N",
                 Cco = model.IsCommonCadreOfficer == "Yes" ? "Y" : "N",
-                DisDesc = model.NatureOfDisability ?? "NA"
+                DisDesc = model.NatureOfDisability ?? "NA",
+                SpouseWorking = model.SpouseWorking == "Yes" ? "Y" : "N",
+                SpouseOffice = model.SpouseOfficeName ?? "NA",
 
             };
         }
@@ -370,6 +372,8 @@ namespace CLRIQTR_EMP.Controllers
                 SurPost = model.SuretyPermanentPost ?? "NA",
                 SurDesig = model.SuretyDesignation ?? "NA",
                 LabCode = Session["Lab"]?.ToString() ?? "NA",
+                SpouseWorking = model.SpouseWorking == "Yes" ? "Y" : "N",
+                SpouseOffice = model.SpouseOfficeName ?? "NA",
 
             };
         }
@@ -411,7 +415,9 @@ namespace CLRIQTR_EMP.Controllers
                     ? date : (DateTime?)null,
                 LabCode = entity.LabCode,
                 AppStatus = entity.AppStatus,
-                NatureOfDisability = entity.DisDesc
+                NatureOfDisability = entity.DisDesc,
+                SpouseWorking = entity.SpouseWorking == "Y" ? "Yes" : "No",
+                SpouseOfficeName = entity.SpouseOffice,
             };
         }
 

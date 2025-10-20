@@ -14,7 +14,8 @@ namespace CLRIQTR_EMP.Models
         [Display(Name = "Applying for Scientist Quarters")]
         public bool ApplyingForScientistQuarters { get; set; }
 
-
+        public string SpouseWorking { get; set; }
+        public string SpouseOfficeName { get; set; }
         public string QuarterType { get; set; }
 
         public string PayLevel { get; set; }
@@ -140,6 +141,9 @@ namespace CLRIQTR_EMP.Models
         [Required]
         public string QtrAppNo { get; set; }
 
+        public string SpouseWorking { get; set; } // To store "Y" or "N"
+        public string SpouseOffice { get; set; }  // To store the office name
+
         [Required]
         public string EmpNo { get; set; }
 
@@ -224,6 +228,9 @@ namespace CLRIQTR_EMP.Models
 
         [Required]
         public string EmpNo { get; set; }
+
+        public string SpouseWorking { get; set; } // To store "Y" or "N"
+        public string SpouseOffice { get; set; }  // To store the office name
 
         [Required]
         public string OwnHouse { get; set; }

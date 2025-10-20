@@ -9,6 +9,8 @@ namespace CLRIQTR_EMP.Models
     {
         public string QtrAppNo { get; set; }
 
+        public string SpouseWorking { get; set; }
+         public string SpouseOfficeName { get; set; }
         public string eqtrtypesel { get; set; }
         public string saint { get; set; }
         public string lowertypesel { get; set; }

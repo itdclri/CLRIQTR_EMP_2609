@@ -162,11 +162,11 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
          INSERT INTO eqtrapply
          (qtrappno, empno, ownhouse, ownname, ownadd, isrent, ownrent, ishouseeightkm, neworcor,
           cpaccom, lowertypesel, saint, doa, toe, qtrres, empmobno, appstatus, permtemp,
-          surname, surpost, surdesig, labcode, eqtrtypesel, ess, cco, disdesc)
+          surname, surpost, surdesig, labcode, eqtrtypesel, ess, cco, disdesc,SpouseWorking, SpouseOffice)
          VALUES
          (@qtrappno, @empno, @ownhouse, @ownname, @ownadd, @isrent, @ownrent, @ishouseeightkm, @neworcor,
           @cpaccom, @lowertypesel, @saint, @doa, @toe, @qtrres, @empmobno, @appstatus, @permtemp,
-          @surname, @surpost, @surdesig, @labcode, @eqtrtypesel, @ess, @cco, @disdesc)", conn);
+          @surname, @surpost, @surdesig, @labcode, @eqtrtypesel, @ess, @cco, @disdesc,@SpouseWorking, @SpouseOffice)", conn);
 
                     // Add parameters with null-to-NA or default handling
                     cmd.Parameters.AddWithValue("@qtrappno", entity.QtrAppNo);
@@ -195,7 +195,8 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                     cmd.Parameters.AddWithValue("@ess", entity.Ess ?? "NA");
                     cmd.Parameters.AddWithValue("@cco", entity.Cco ?? "NA");
                     cmd.Parameters.AddWithValue("@disdesc", entity.DisDesc ?? "NA");
-
+                    cmd.Parameters.AddWithValue("@SpouseWorking", entity.SpouseWorking ?? "NA");
+                    cmd.Parameters.AddWithValue("@SpouseOffice", entity.SpouseOffice ?? "NA");
 
                     int rows = cmd.ExecuteNonQuery();
                     return rows > 0;
@@ -225,11 +226,11 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                 INSERT INTO saeqtrapply
                 (saqtrappno, empno, ownhouse, ownname, ownadd, isrent, ownrent, ishouseeightkm, neworcor,
                  cpaccom, lowertypesel, saint, doa, toe, qtrres, empmobno, appstatus, permtemp,
-                 surname, surpost, surdesig, labcode)
+                 surname, surpost, surdesig, labcode,SpouseWorking, SpouseOffice)
                 VALUES
                 (@saqtrappno, @empno, @ownhouse, @ownname, @ownadd, @isrent, @ownrent, @ishouseeightkm, @neworcor,
                  @cpaccom, @lowertypesel, @saint, @doa, @toe, @qtrres, @empmobno, @appstatus, @permtemp,
-                 @surname, @surpost, @surdesig, @labcode)", conn);
+                 @surname, @surpost, @surdesig, @labcode,@SpouseWorking, @SpouseOffice)", conn);
 
                     // Add parameters with default/null-safe values
                     cmd.Parameters.AddWithValue("@saqtrappno", entity.SaQtrAppNo);
@@ -254,6 +255,8 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                     cmd.Parameters.AddWithValue("@surpost", entity.SurPost ?? "NA");
                     cmd.Parameters.AddWithValue("@surdesig", entity.SurDesig ?? "NA");
                     cmd.Parameters.AddWithValue("@labcode", entity.LabCode ?? "NA");
+                    cmd.Parameters.AddWithValue("@SpouseWorking", entity.SpouseWorking ?? "NA");
+                    cmd.Parameters.AddWithValue("@SpouseOffice", entity.SpouseOffice ?? "NA");
 
                     int rows = cmd.ExecuteNonQuery();
                     return rows > 0;
@@ -301,7 +304,9 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                     eqtrtypesel = @eqtrtypesel,
                     ess = @ess,
                     cco = @cco,
-                    disdesc = @disdesc
+                    disdesc = @disdesc,
+SpouseWorking = @SpouseWorking,
+                    SpouseOffice = @SpouseOffice    
                 WHERE qtrappno = @qtrappno AND empno = @empno", conn);
 
                     // Assign parameters with same null-safe/default values as in Insert
@@ -329,6 +334,8 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                     cmd.Parameters.AddWithValue("@ess", entity.Ess ?? "NA");
                     cmd.Parameters.AddWithValue("@cco", entity.Cco ?? "NA");
                     cmd.Parameters.AddWithValue("@disdesc", entity.DisDesc ?? "NA");
+                    cmd.Parameters.AddWithValue("@SpouseWorking", entity.SpouseWorking ?? "NA");
+                    cmd.Parameters.AddWithValue("@SpouseOffice", entity.SpouseOffice ?? "NA");
 
                     cmd.Parameters.AddWithValue("@qtrappno", entity.QtrAppNo);
                     cmd.Parameters.AddWithValue("@empno", entity.EmpNo);
@@ -375,7 +382,9 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
         surname = @surname,
         surpost = @surpost,
         surdesig = @surdesig,
-        labcode = @labcode
+        labcode = @labcode,
+SpouseWorking = @SpouseWorking, 
+                    SpouseOffice = @SpouseOffice   
     WHERE empno = @empno", conn);
 
                     // Assign parameters with null‑safe or default handling
@@ -399,7 +408,8 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                     cmd.Parameters.AddWithValue("@surpost", entity.SurPost ?? "NA");
                     cmd.Parameters.AddWithValue("@surdesig", entity.SurDesig ?? "NA");
                     cmd.Parameters.AddWithValue("@labcode", entity.LabCode ?? "NA");
-
+                    cmd.Parameters.AddWithValue("@SpouseWorking", entity.SpouseWorking ?? "NA");
+                    cmd.Parameters.AddWithValue("@SpouseOffice", entity.SpouseOffice ?? "NA");
                     cmd.Parameters.AddWithValue("@saqtrappno", entity.SaQtrAppNo);
                     cmd.Parameters.AddWithValue("@empno", entity.EmpNo);
 
@@ -450,6 +460,8 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                 Ess = reader["ess"] as string,
                 Cco = reader["cco"] as string,
                 DisDesc = reader["disdesc"] as string,
+                SpouseWorking = reader["SpouseWorking"] as string,
+                SpouseOffice = reader["SpouseOffice"] as string
             };
         }
 
@@ -464,7 +476,7 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
             if (string.IsNullOrEmpty(qtrAppNo))
                 return null;
 
-const string sql = @"SELECT qtrappno, appstatus, empno, ownhouse, ownname, ownadd, isrent, ownrent, ishouseeightkm, neworcor, cpaccom, lowertypesel, saint, doa, toe, qtrres, empmobno, permtemp, surname, surpost, surdesig, labcode, eqtrtypesel, ess, cco, disdesc FROM eqtrapply WHERE qtrAppNo = @qtrAppNo AND (appstatus = 'D' OR appstatus = 'C') UNION SELECT saqtrappno AS qtrappno, appstatus, empno, ownhouse, ownname, ownadd, isrent, ownrent, ishouseeightkm, neworcor, cpaccom, lowertypesel, saint, doa, toe, qtrres, empmobno, permtemp, surname, surpost, surdesig, labcode, NULL AS eqtrtypesel, NULL AS ess, NULL AS cco, NULL AS disdesc FROM saeqtrapply WHERE saqtrAppNo = @qtrAppNo AND (appstatus = 'D' OR appstatus = 'C')";
+const string sql = @"SELECT qtrappno, appstatus, empno, ownhouse, ownname, ownadd, isrent, ownrent, ishouseeightkm, neworcor, cpaccom, lowertypesel, saint, doa, toe, qtrres, empmobno, permtemp, surname, surpost, surdesig, labcode, eqtrtypesel, ess, cco, disdesc,SpouseWorking,SpouseOffice FROM eqtrapply WHERE qtrAppNo = @qtrAppNo AND (appstatus = 'D' OR appstatus = 'C') UNION SELECT saqtrappno AS qtrappno, appstatus, empno, ownhouse, ownname, ownadd, isrent, ownrent, ishouseeightkm, neworcor, cpaccom, lowertypesel, saint, doa, toe, qtrres, empmobno, permtemp, surname, surpost, surdesig, labcode, NULL AS eqtrtypesel, NULL AS ess, NULL AS cco, NULL AS disdesc,SpouseWorking,SpouseOffice FROM saeqtrapply WHERE saqtrAppNo = @qtrAppNo AND (appstatus = 'D' OR appstatus = 'C')";
 
             try
             {
@@ -891,7 +903,7 @@ SELECT
     t.qtrtype AS entitledtype, e.qtrres, e.ownhouse, e.ownname, 
     e.ownadd AS owneraddress, e.ishouseeightkm AS ishouseletout, 
     e.ownrent AS rentreceived, e.permtemp, e.surname AS suretyname, 
-    e.surpost AS suretydesignation, e.surdesig AS suretypost, e.ess, e.cco
+    e.surpost AS suretydesignation, e.surdesig AS suretypost, e.ess, e.cco,e.SpouseWorking, e.SpouseOffice
 FROM eqtrapply e
 LEFT JOIN empmast em ON e.empno = em.empno
 LEFT JOIN desmast d ON em.designation = d.desid
@@ -944,7 +956,9 @@ WHERE e.qtrappno = @qtrAppNo";
                             SuretyDesignation = GetString(reader, "suretydesignation"),
                             SuretyPost = GetString(reader, "suretypost"),
                             ServicesEssential = GetString(reader, "ess"),
-                            cco=GetString(reader,"cco")
+                            cco=GetString(reader,"cco"),
+                            SpouseWorking = GetString(reader, "SpouseWorking"),
+                            SpouseOfficeName = GetString(reader, "SpouseOffice")
                         };
 
                     }
@@ -1016,7 +1030,7 @@ SELECT e.saint,
     e.permtemp, 
     e.surname AS suretyname, 
     e.surpost AS suretydesignation, 
-    e.surdesig AS suretypost
+    e.surdesig AS suretypost,e.SpouseWorking, e.SpouseOffice
 FROM saeqtrapply e
 LEFT JOIN empmast em ON e.empno = em.empno
 LEFT JOIN desmast d ON em.designation = d.desid
@@ -1078,8 +1092,10 @@ WHERE e.saqtrappno = @qtrAppNo";
                             PermanentOrTemporary = GetString(reader1, "permtemp"),
                             SuretyName = GetString(reader1, "suretyname"),
                             SuretyDesignation = GetString(reader1, "suretydesignation"),
-                            SuretyPost = GetString(reader1, "suretypost")
-                            
+                            SuretyPost = GetString(reader1, "suretypost"),
+                            SpouseWorking = GetString(reader1, "SpouseWorking"),
+                            SpouseOfficeName = GetString(reader1, "SpouseOffice")
+
 
                         };
                     }
