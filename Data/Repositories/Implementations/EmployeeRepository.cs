@@ -596,10 +596,12 @@ const string sql = @"SELECT qtrappno, appstatus, empno, ownhouse, ownname, ownad
 SELECT 
     CONCAT(IFNULL(eq.qtrappno, ''), IF(eq.qtrappno IS NOT NULL AND sa.saqtrappno IS NOT NULL, ' ', ''), IFNULL(sa.saqtrappno, '')) AS qtrappno,
     COALESCE(eq.doa, sa.doa) AS doa,
-    COALESCE(eq.appstatus, sa.appstatus) AS appstatus
+    COALESCE(eq.appstatus, sa.appstatus) AS appstatus,e.doj_dt,
+            e.designation
 FROM 
     eqtrapply eq
 LEFT JOIN saeqtrapply sa ON eq.empno = sa.empno
+LEFT JOIN empmast e ON e.empno = eq.empno
 WHERE 
     eq.empno = @empNo
     AND (eq.appstatus IN ('D', 'C') OR sa.appstatus IN ('D', 'C'))
@@ -610,10 +612,13 @@ UNION
 SELECT 
     CONCAT(IFNULL(eq.qtrappno, ''), IF(eq.qtrappno IS NOT NULL AND sa.saqtrappno IS NOT NULL, ' ', ''), IFNULL(sa.saqtrappno, '')) AS qtrappno,
     COALESCE(eq.doa, sa.doa) AS doa,
-    COALESCE(eq.appstatus, sa.appstatus) AS appstatus
+    COALESCE(eq.appstatus, sa.appstatus) AS appstatus,e.doj_dt,
+            e.designation
 FROM 
     eqtrapply eq
 RIGHT JOIN saeqtrapply sa ON eq.empno = sa.empno
+LEFT JOIN empmast e ON e.empno = eq.empno
+
 WHERE 
     sa.empno = @empNo
     AND eq.empno IS NULL -- This is key: ensures no duplicates from the first query

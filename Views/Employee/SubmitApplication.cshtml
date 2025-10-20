@@ -23,6 +23,52 @@
 
 @{
     bool isTypeV = Model.QuarterType == "V";
+
+    // --- NEW LOGIC ---
+    // This block automatically determines the Permanent/Temporary status.
+
+    // 1. Define probation lists based on designation code
+    // (Using codes from our previous conversation)
+    var probation1YearCodes = new List<string> { "7", "20", "25" };
+    var probation2YearCodes = new List<string> {
+        "30", "32", "35", "36", "38", "40", "41", "45", "48"
+    }; // Assuming "48" for Security Officer
+
+    // 2. Get data from Model (must be populated in Controller)
+    var desigCode = Model.DesignationCode;
+    var doj = Model.DateOfJoining;
+    var today = DateTime.Now;
+
+    bool isTemporary = false;
+
+    // 3. Apply the rules
+    if (probation1YearCodes.Contains(desigCode))
+    {
+        if (doj.AddYears(1) > today)
+        {
+            isTemporary = true; // Less than 1 year service
+        }
+    }
+    else if (probation2YearCodes.Contains(desigCode))
+    {
+        if (doj.AddYears(2) > today)
+        {
+            isTemporary = true; // Less than 2 years service
+        }
+    }
+    // For all other codes, or if probation is over, isTemporary remains false (Permanent)
+
+    // 4. Set the model value. The @Html.RadioButtonFor helpers will now
+    // automatically check the correct one.
+    if (isTemporary)
+    {
+        Model.PermanentOrTemporary = "Temporary";
+    }
+    else
+    {
+        Model.PermanentOrTemporary = "Permanent";
+    }
+    // --- END OF NEW LOGIC ---
 }
 
 <style>
@@ -193,19 +239,27 @@
             </div>
         </div>
 
+        @* --- MODIFIED SECTION --- *@
+        @* The radio buttons are now "disabled" and the value is set by the logic above. *@
         <div class="row mb-3 align-items-center">
             <label class="col-md-6 col-form-label fw-bold">State Whether Permanent or Temporary</label>
             <div class="col-md-6">
                 <div class="form-check form-check-inline">
-                    @Html.RadioButtonFor(m => m.PermanentOrTemporary, "Permanent", new { @class = "form-check-input", id = "permRadio" })
+                    @Html.RadioButtonFor(m => m.PermanentOrTemporary, "Permanent", new { @class = "form-check-input", id = "permRadio", disabled = "disabled" })
                     <label class="form-check-label fw-bold" for="permRadio">Permanent</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    @Html.RadioButtonFor(m => m.PermanentOrTemporary, "Temporary", new { @class = "form-check-input", id = "tempRadio" })
+                    @Html.RadioButtonFor(m => m.PermanentOrTemporary, "Temporary", new { @class = "form-check-input", id = "tempRadio", disabled = "disabled" })
                     <label class="form-check-label fw-bold" for="tempRadio">Temporary</label>
                 </div>
+
+                @* IMPORTANT: Disabled inputs do not post back to the server. *@
+                @* This hidden field ensures the automatically-set value is submitted. *@
+                @Html.HiddenFor(m => m.PermanentOrTemporary)
             </div>
         </div>
+        @* --- END OF MODIFIED SECTION --- *@
+
 
         <div id="suretyDetails" style="display:none; margin-left:20px;">
             <label class="fw-bold mb-2">If Temporary and less than 3 years service, enter surety details:</label>
@@ -347,6 +401,7 @@
             var suretyDiv = document.getElementById('suretyDetails');
 
             // Show the surety div only if 'Temporary' is checked
+            // This will still work correctly on page load
             suretyDiv.style.display = (tempRadio && tempRadio.checked) ? 'block' : 'none';
         }
 
@@ -366,7 +421,7 @@
             // 1. Run all functions once to set the correct state on page load
             toggleOwnHouseDetails();
             toggleRentAmount();
-            toggleSuretyDetails();
+            toggleSuretyDetails(); // This will correctly show/hide surety based on the auto-set value
             toggleSpouseOfficeDetails();
 
             // 2. Add "listeners" to run the functions when you click the radio buttons
@@ -380,13 +435,14 @@
             document.getElementById('letOutNo').addEventListener('change', toggleRentAmount);
 
             // Listeners for Surety
-            document.getElementById('tempRadio').addEventListener('change', toggleSuretyDetails);
-            document.getElementById('permRadio').addEventListener('change', toggleSuretyDetails);
+            // These listeners are no longer needed since the buttons are disabled,
+            // but they don't cause any harm.
+            // document.getElementById('tempRadio').addEventListener('change', toggleSuretyDetails);
+            // document.getElementById('permRadio').addEventListener('change', toggleSuretyDetails);
 
             // Listeners for Spouse
             document.getElementById('spouseWorkingYes').addEventListener('change', toggleSpouseOfficeDetails);
             document.getElementById('spouseWorkingNo').addEventListener('change', toggleSpouseOfficeDetails);
         });
     </script>
-}
 }

@@ -18,6 +18,8 @@ namespace CLRIQTR_EMP.Models
         public string SpouseOfficeName { get; set; }
         public string QuarterType { get; set; }
 
+        public DateTime DateOfJoining { get; set; }
+        public string DesignationCode { get; set; }
         public string PayLevel { get; set; }
 
         // Flag to indicate if the first form is submitted
@@ -215,8 +217,9 @@ namespace CLRIQTR_EMP.Models
 
         public string DisDesc { get; set; }
 
-    
 
+        public DateTime DateOfJoining { get; set; }
+        public string DesignationCode { get; set; }
 
     }
 
@@ -229,8 +232,13 @@ namespace CLRIQTR_EMP.Models
         [Required]
         public string EmpNo { get; set; }
 
+        public DateTime DateOfJoining { get; set; }
+        public string DesignationCode { get; set; }
+
         public string SpouseWorking { get; set; } // To store "Y" or "N"
         public string SpouseOffice { get; set; }  // To store the office name
+
+      
 
         [Required]
         public string OwnHouse { get; set; }
