@@ -167,6 +167,40 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
             }
             return password;
         }
+
+        // Inside your LoginRepository.cs class
+
+        // (You'll need a using statement for MySql.Data.MySqlClient)
+        // (I'm assuming you have a _connectionString field/property in this class)
+
+        // Inside your LoginRepository.cs class
+        // (Make sure you have 'using MySql.Data.MySqlClient;')
+
+        public bool UserExists(string empno)
+        {
+            // Assuming your connection string is _connectionString
+            // and your table is emp_login
+            string sql = "SELECT COUNT(1) FROM emplogin WHERE empno = @empno";
+
+            try
+            {
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    using (var command = new MySqlCommand(sql, connection))
+                    {
+                        command.Parameters.AddWithValue("@empno", empno);
+                        connection.Open();
+                        int count = Convert.ToInt32(command.ExecuteScalar());
+                        return count > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // You should log this exception
+                return false;
+            }
+        }
     }
 
 }

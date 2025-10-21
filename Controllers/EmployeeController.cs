@@ -43,7 +43,7 @@ namespace CLRIQTR_EMP.Controllers
 
                 if (employee == null)
                 {
-                    TempData["ErrorMessage"] = $"Employee with ID {empNo} not found.Contact Admin.";
+                    TempData["ErrorMessage"] = $"Employee with ID {empNo} not found . Contact your E-IV SO of your  Lab.";
                     return RedirectToAction("Index", "Login");
                 }
 

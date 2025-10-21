@@ -37,7 +37,8 @@ namespace CLRIQTR_EMP.Controllers
             return View(new EmpLogin());
         }
 
-        // POST: Registration form submission
+        // Inside your LoginController.cs
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Registration(EmpLogin model)
@@ -47,13 +48,15 @@ namespace CLRIQTR_EMP.Controllers
                 return View(model);
             }
 
-            // Check if user already exists
-            var existingUser = _loginRepository.GetUser(model.empno, model.pwd);
-            if (existingUser != null)
+            // --- THIS IS THE CORRECTED LOGIC ---
+            // 1. Check if user exists using ONLY the employee number
+            if (_loginRepository.UserExists(model.empno))
             {
-                ModelState.AddModelError("", "Employee number already registered.");
+                // 2. Add the error to the 'empno' field so it shows under the textbox
+                ModelState.AddModelError("empno", "This Employee Number is already registered.");
                 return View(model);
             }
+            // --- END OF CORRECTION ---
 
             string labCode = null;
             if (model.lab == "CLRI")
@@ -70,6 +73,7 @@ namespace CLRIQTR_EMP.Controllers
                 return View(model);
             }
 
+            // This line will now only run if the empno is NOT a duplicate
             bool success = _loginRepository.InsertUser(model.empno, model.pwd, labCode);
 
             if (!success)
