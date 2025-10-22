@@ -149,6 +149,12 @@ namespace CLRIQTR_EMP.Controllers
             bool hasPhysicalDisability = _employeeRepo.HasPhysicalDisability(empNo);
             model.ShowDisabilityFields = hasPhysicalDisability;
 
+
+            var employee = _employeeRepo.GetEmployeeByEmpNo(empNo);
+            model.DesignationCode = employee.Designation;
+            model.DateOfJoining = employee.DOJ_dt;       
+
+
             return View(model);
         }
 

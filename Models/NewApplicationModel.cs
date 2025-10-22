@@ -18,7 +18,7 @@ namespace CLRIQTR_EMP.Models
         public string SpouseOfficeName { get; set; }
         public string QuarterType { get; set; }
 
-        public DateTime DateOfJoining { get; set; }
+        public DateTime? DateOfJoining { get; set; }
         public string DesignationCode { get; set; }
         public string PayLevel { get; set; }
 

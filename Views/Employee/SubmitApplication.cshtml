@@ -32,34 +32,41 @@
     var probation1YearCodes = new List<string> { "7", "20", "25" };
     var probation2YearCodes = new List<string> {
         "30", "32", "35", "36", "38", "40", "41", "45", "48"
-    }; // Assuming "48" for Security Officer
+    };
 
     // 2. Get data from Model (must be populated in Controller)
     var desigCode = Model.DesignationCode;
-    var doj = Model.DateOfJoining;
+    var doj = Model.DateOfJoining; // This is your DateTime?
     var today = DateTime.Now;
 
     bool isTemporary = false;
 
-    // 3. Apply the rules
-    if (probation1YearCodes.Contains(desigCode))
+    // --- START OF FIX ---
+    // First, check if DOJ actually has a value
+    if (doj.HasValue)
     {
-        if (doj.AddYears(1) > today)
+        // Now it's safe to use doj.Value (which is a regular DateTime)
+        if (probation1YearCodes.Contains(desigCode))
         {
-            isTemporary = true; // Less than 1 year service
+            if (doj.Value.AddYears(1) > today) // Use .Value
+            {
+                isTemporary = true; // Less than 1 year service
+            }
+        }
+        else if (probation2YearCodes.Contains(desigCode))
+        {
+            if (doj.Value.AddYears(2) > today) // Use .Value
+            {
+                isTemporary = true; // Less than 2 years service
+            }
         }
     }
-    else if (probation2YearCodes.Contains(desigCode))
-    {
-        if (doj.AddYears(2) > today)
-        {
-            isTemporary = true; // Less than 2 years service
-        }
-    }
-    // For all other codes, or if probation is over, isTemporary remains false (Permanent)
+    // If doj.HasValue is false (meaning DOJ is null),
+    // isTemporary will just stay 'false' (Permanent), which is safe.
+    // --- END OF FIX ---
 
-    // 4. Set the model value. The @Html.RadioButtonFor helpers will now
-    // automatically check the correct one.
+
+    // 4. Set the model value.
     if (isTemporary)
     {
         Model.PermanentOrTemporary = "Temporary";
@@ -368,6 +375,15 @@
         </div>
     }
 </div>
+
+
+<script>
+    console.log("--- PERMANENT/TEMPORARY DEBUG LOGS ---");
+    console.log("Designation Code: '@Model.DesignationCode'");
+    console.log("Date of Joining: '@Model.DateOfJoining.ToString()'");
+    console.log("Status Calculated by View: '@Model.PermanentOrTemporary'");
+    console.log("----------------------------------------");
+</script>
 
 @section scripts {
     <script>
