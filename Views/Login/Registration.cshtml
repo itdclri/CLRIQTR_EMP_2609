@@ -61,6 +61,37 @@
         font-weight: bold;
         color: #0d6efd; /* Bootstrap primary color */
     }
+
+    /* 2. ADDED REUSABLE CSS RULES */
+    .password-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .password-input {
+        padding-right: 45px;
+    }
+
+    .toggle-password-btn {
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #6c757d;
+    }
+
+    /* Hide the browser's default "eye" icon */
+    .password-input::-ms-reveal {
+        display: none;
+    }
+
+    .password-input::-webkit-reveal {
+        display: none !important;
+        -webkit-appearance: none !important;
+    }
 </style>
 
 <nav class="navbar navbar-expand navbar-light bg-light mb-4">
@@ -118,7 +149,20 @@
 
         <div class="form-group mb-4">
             <label for="pwd"><i class="bi bi-shield-lock-fill"></i> Password</label>
-            @Html.PasswordFor(m => m.pwd, new { @class = "form-control", placeholder = "Enter Password", id = "pwd" })
+
+            <div class="password-wrapper">
+                @Html.PasswordFor(m => m.pwd, new
+                {
+                    @class = "form-control password-input",
+                    placeholder = "Enter Password",
+                    id = "pwd"
+                })
+
+                <button type="button" class="toggle-password-btn">
+                    <i class="bi bi-eye-slash-fill toggle-password-icon"></i>
+                </button>
+            </div>
+
             @*@Html.ValidationMessageFor(m => m.pwd, "", new { @class = "text-danger" }) <br />*@
             <br />
             <small class="form-text text-muted">
@@ -131,11 +175,44 @@
             </small>
             @Html.ValidationMessageFor(m => m.pwd, "", new { @class = "text-danger" })
         </div>
-
         <button type="submit" class="btn btn-primary">Register  <i class="bi bi-person-plus-fill"></i></button>
     }
 </div>
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        // Find ALL toggle buttons on the page
+        const allToggleButtons = document.querySelectorAll(".toggle-password-btn");
+
+        // Loop through each button
+        allToggleButtons.forEach(function (button) {
+
+            button.addEventListener("click", function () {
+                // Find the elements *related* to this specific button
+                const wrapper = button.closest('.password-wrapper');
+                const passwordInput = wrapper.querySelector(".password-input");
+                const passwordIcon = wrapper.querySelector(".toggle-password-icon");
+
+                // Toggle the type attribute
+                const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+                passwordInput.setAttribute("type", type);
+
+                // Toggle the icon
+                if (type === "password") {
+                    // Show the 'slashed' eye
+                    passwordIcon.classList.remove("bi-eye-fill");
+                    passwordIcon.classList.add("bi-eye-slash-fill");
+                } else {
+                    // Show the 'open' eye
+                    passwordIcon.classList.remove("bi-eye-slash-fill");
+                    passwordIcon.classList.add("bi-eye-fill");
+                }
+            });
+        });
+    });
+    </script>
 }
