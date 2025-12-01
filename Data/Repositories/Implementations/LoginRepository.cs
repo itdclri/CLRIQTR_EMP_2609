@@ -5,41 +5,55 @@ using System.Configuration;
 using MimeKit;
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using NLog;
+using Google.Protobuf.Collections;
 
 namespace CLRIQTR_EMP.Data.Repositories.Implementations
 {
     public class LoginRepository
     {
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private readonly string connectionString = ConfigurationManager.ConnectionStrings["MySqlConn"].ConnectionString;
 
         public EmpLogin GetUser(string username, string password)
         {
-            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            try
             {
-                string query = "SELECT empno, pwd, lab FROM emplogin WHERE empno = @empno AND pwd = @pwd";
-                using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
                 {
-                    cmd.Parameters.AddWithValue("@empno", username);
-                    cmd.Parameters.AddWithValue("@pwd", password);
-
-                    conn.Open();
-
-                    using (MySqlDataReader reader = cmd.ExecuteReader())
+                    string query = "SELECT empno, pwd, lab FROM emplogin WHERE empno = @empno AND pwd = @pwd";
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
                     {
-                        if (reader.Read())
+                        cmd.Parameters.AddWithValue("@empno", username);
+                        cmd.Parameters.AddWithValue("@pwd", password);
+
+                        conn.Open();
+                        using (MySqlDataReader reader = cmd.ExecuteReader())
                         {
-                            return new EmpLogin
+                            if (reader.Read())
                             {
-                                empno = reader["empno"].ToString(),
-                                pwd = reader["pwd"].ToString(),
-                                lab = reader["lab"].ToString()
-                            };
+                                logger.Debug("GetUser: found user for EmpNo {0}", username);
+                                return new EmpLogin
+                                {
+                                    empno = reader["empno"].ToString(),
+                                    pwd = reader["pwd"].ToString(),
+                                    lab = reader["lab"].ToString()
+                                };
+                            }
                         }
                     }
                 }
+
+                logger.Debug("GetUser: no user found for EmpNo {0}", username);
+                return null;
             }
-            return null;
+            catch (Exception ex)
+            {
+                logger.Error(ex, "GetUser failed for EmpNo {0}", username);
+                throw;
+            }
         }
+
 
         public bool InsertUser(string empno, string pwd, string lab)
         {
@@ -69,13 +83,17 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
 
             if (string.IsNullOrEmpty(email))
             {
+                logger.Warn("Password recovery failed – no email for EmpNo {0}", employeeNumber);
                 return "Employee number not found or email address is not available.";
             }
 
             if (string.IsNullOrEmpty(password))
             {
+                logger.Warn("Password recovery failed – no password for EmpNo {0}", employeeNumber);
                 return "Password not found for the given employee number.";
             }
+
+            logger.Info("Sending password recovery email to {0} for EmpNo {1}", email, employeeNumber);
 
 
             string subject = "Informaation regarding CSIR-CLRI Quarters Application";
@@ -113,11 +131,12 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                     client.Send(message);
                     client.Disconnect(true);
 
+                    logger.Info("Password recovery email sent successfully for EmpNo {0}", employeeNumber);
                     return "A recovery email has been sent to your address.";
                 }
                 catch (Exception ex)
                 {
-                    // Log the exception if needed
+                    logger.Error(ex, "Error while sending recovery email for EmpNo {0}", employeeNumber);
                     return "An error occurred while sending the recovery email.";
                 }
             }
@@ -139,6 +158,11 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                         if (reader.Read())
                         {
                             email = reader["email"].ToString();
+                            logger.Info("Email fetched for EmpNo {0}: {1}", employeeNumber, email);
+                        }
+                        else
+                        {
+                            logger.Warn("No email found in empmast for EmpNo {0}", employeeNumber);
                         }
                     }
                 }
@@ -161,6 +185,11 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                         if (reader.Read())
                         {
                             password = reader["pwd"].ToString();
+                            logger.Info("Password fetched for EmpNo {0}", employeeNumber);
+                        }
+                        else
+                        {
+                            logger.Warn("No password found in emplogin for EmpNo {0}", employeeNumber);
                         }
                     }
                 }
@@ -191,13 +220,18 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                         command.Parameters.AddWithValue("@empno", empno);
                         connection.Open();
                         int count = Convert.ToInt32(command.ExecuteScalar());
-                        return count > 0;
+                        bool exists = count > 0;
+
+                        logger.Info("UserExists check for EmpNo: {0} | Exists: {1}", empno, exists);
+
+                        return exists;
+
                     }
                 }
             }
             catch (Exception ex)
             {
-                // You should log this exception
+                logger.Error(ex, "Error in UserExists() for EmpNo: {0}", empno);
                 return false;
             }
         }

@@ -1364,7 +1364,125 @@ GROUP BY
             return familyDetails;
         }
 
+        public bool IsEntitledQuarterAlreadyOccupied(string empNo)
+        {
+            const string sql = @"
+        SELECT COUNT(*) 
+        FROM qtrupd q
+        INNER JOIN empmast e ON q.empno = e.empno
+        INNER JOIN typeligibility t ON e.paylvl = t.paylvl
+        WHERE q.empno = @empNo
+          AND q.qtrstatus = 'O'
+          -- q.qtrtype is like 'III MS', entitlement is 'III', so compare the prefix
+          AND SUBSTRING_INDEX(q.qtrtype, ' ', 1) = t.qtrtype";
 
+            try
+            {
+                using (var conn = new MySqlConnection(_connStr))
+                using (var cmd = new MySqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@empNo", empNo);
+                    conn.Open();
+
+                    var result = cmd.ExecuteScalar();
+                    long count = (result == null || result is DBNull) ? 0 : Convert.ToInt64(result);
+                    return count > 0;   // true = already in possession of entitled type
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("IsEntitledQuarterAlreadyOccupied error: " + ex.Message);
+                return false;   // safe fallback: treat as not occupied
+            }
+        }
+
+        public bool IsScientistQuarterEligible(string empNo)
+        {
+            const string sql = @"
+        SELECT e.paylvl,
+               e.designation,
+               s.saeligible
+        FROM empmast e
+        LEFT JOIN saeligibility s ON e.paylvl = s.paylvl
+        WHERE e.empno = @empNo
+        LIMIT 1";
+
+            try
+            {
+                using (var conn = new MySqlConnection(_connStr))
+                using (var cmd = new MySqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@empNo", empNo);
+                    conn.Open();
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (!reader.Read())
+                            return false;
+
+                        string paylvlRaw = reader["paylvl"]?.ToString() ?? "";
+                        string desigCode = reader["designation"]?.ToString() ?? "";
+                        string saFlag = reader["saeligible"]?.ToString() ?? "N";
+
+                        // If pay-level itself is not SA-eligible, stop here
+                        if (saFlag != "Y")
+                            return false;
+
+                        // Normalise pay level to integer (handles 13A, etc.)
+                        var digitsOnly = new string(paylvlRaw.Where(char.IsDigit).ToArray());
+                        int payLevelInt = 0;
+                        int.TryParse(digitsOnly, out payLevelInt);
+
+                        // For pay level > 7: saeligibility table alone is enough
+                        if (payLevelInt > 7)
+                            return true;
+
+                        // For pay level = 7: ONLY designation 19 is allowed
+                        if (payLevelInt == 7)
+                            return desigCode == "19";
+
+                        // For pay levels below 7: not eligible
+                        return false;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("IsScientistQuarterEligible error: " + ex.Message);
+                return false; // safe default
+            }
+        }
+
+
+
+        public bool IsScientistQuarterAlreadyOccupied(string empNo)
+        {
+            const string sql = @"
+        SELECT COUNT(*)
+        FROM qtrupd
+        WHERE empno = @empNo
+          AND qtrstatus = 'O'
+          AND qtrtype = 'SA'";
+
+            try
+            {
+                using (var conn = new MySqlConnection(_connStr))
+                using (var cmd = new MySqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@empNo", empNo);
+                    conn.Open();
+
+                    var result = cmd.ExecuteScalar();
+                    long count = (result == null || result is DBNull) ? 0 : Convert.ToInt64(result);
+                    return count > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("IsScientistQuarterAlreadyOccupied error: " + ex.Message);
+                return false;
+            }
+        }
 
 
 

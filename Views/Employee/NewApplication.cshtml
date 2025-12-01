@@ -4,13 +4,27 @@
     ViewBag.Title = "New Application - Step 1";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
+    var entitledTypeOccupied = ViewBag.EntitledTypeOccupied != null
+        && (bool)ViewBag.EntitledTypeOccupied;
+
+    var showScientistOption = ViewBag.ShowScientistOption != null
+        && (bool)ViewBag.ShowScientistOption;
+
+    var isSaEligible = ViewBag.IsSaEligible != null
+        && (bool)ViewBag.IsSaEligible;
+
+    var isSaOccupied = ViewBag.IsSaOccupied != null
+        && (bool)ViewBag.IsSaOccupied;
+
+
+
     var quartersTypeLabel = "Applying for Quarters Type";
     if (!string.IsNullOrEmpty(Model.QuarterType))
     {
         quartersTypeLabel += " - " + Model.QuarterType;
     }
 
-    var payLevelRaw = Session["PayLevel"]?.ToString() ?? "";
+    /*var payLevelRaw = Session["PayLevel"]?.ToString() ?? "";
     int payLevel = 0;
 
     // Extract digits only, to handle cases like "13 a"
@@ -28,7 +42,7 @@
     else if (payLevel == 7 && designation.Equals("Technical Officer", StringComparison.OrdinalIgnoreCase))
     {
         showScientistOption = true;
-    }
+    }*/
 }
 
 <style>
@@ -78,20 +92,36 @@
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
         <!-- Quarters Toggle -->
-        <div class="mb-4 row align-items-center">
-            <div class="col-md-4 pe-4">
-                <label class="form-label fw-bold">@quartersTypeLabel</label>
-            </div>
-            <div class="col-md-8 d-flex align-items-center">
-                <div class="form-check form-switch">
-                    @Html.CheckBoxFor(m => m.ApplyingForQuarters, new { @class = "form-check-input", id = "quartersToggle" })
-                    <label class="form-check-label ms-2" for="quartersToggle">Yes / No</label>
+        if (!entitledTypeOccupied)
+        {
+            <div class="mb-4 row align-items-center">
+                <div class="col-md-4 pe-4">
+                    <label class="form-label fw-bold">@quartersTypeLabel</label>
                 </div>
-                @Html.ValidationMessageFor(m => m.ApplyingForQuarters, "", new { @class = "text-danger ms-3" })
+                <div class="col-md-8 d-flex align-items-center">
+                    <div class="form-check form-switch">
+                        @Html.CheckBoxFor(m => m.ApplyingForQuarters, new { @class = "form-check-input", id = "quartersToggle" })
+                        <label class="form-check-label ms-2" for="quartersToggle">Yes / No</label>
+                    </div>
+                    @Html.ValidationMessageFor(m => m.ApplyingForQuarters, "", new { @class = "text-danger ms-3" })
+                </div>
             </div>
-        </div>
+        }
+        else
+        {
+            <div class="mb-4 row align-items-center">
+                <div class="col-md-4 pe-4">
+                    <label class="form-label fw-bold">@quartersTypeLabel</label>
+                </div>
+                <div class="col-md-8">
+                    <span class="text-muted">
+                        You are already in occupation of Type @Model.QuarterType quarters.
+                        You cannot apply again for this type.
+                    </span>
+                </div>
+            </div>
+        }
 
-        <!-- Scientist Toggle -->
         if (showScientistOption)
         {
             <div class="mb-4 row align-items-center">
@@ -100,13 +130,37 @@
                 </div>
                 <div class="col-md-8 d-flex align-items-center">
                     <div class="form-check form-switch">
-                        @Html.CheckBoxFor(m => m.ApplyingForScientistQuarters, new { @class = "form-check-input", id = "scientistToggle" })
+                        @Html.CheckBoxFor(m => m.ApplyingForScientistQuarters,
+                            new { @class = "form-check-input", id = "scientistToggle" })
                         <label class="form-check-label ms-2" for="scientistToggle">Yes / No</label>
                     </div>
-                    @Html.ValidationMessageFor(m => m.ApplyingForScientistQuarters, "", new { @class = "text-danger ms-3" })
+                    @Html.ValidationMessageFor(m => m.ApplyingForScientistQuarters, "",
+                        new { @class = "text-danger ms-3" })
                 </div>
             </div>
         }
+        else
+        {
+            <div class="mb-4 row align-items-center">
+                <div class="col-md-4 pe-4">
+                    <label class="form-label fw-bold">Applying for Scientist Quarters</label>
+                </div>
+                <div class="col-md-8 d-flex align-items-center">
+                    <span class="text-muted">
+                        @if (isSaOccupied)
+                        {
+                            @:Already in occupation of Scientist Apartments.
+                        }
+                        else if (!isSaEligible)
+                        {
+                            @:Not eligible for Scientist Quarters.
+                        }
+                    </span>
+                </div>
+            </div>
+        }
+
+
 
         <!-- Submit -->
         <div class="text-center">
@@ -128,8 +182,8 @@
             form.appendChild(errorMessageDiv);
 
             form.addEventListener("submit", function (e) {
-                const applyingForQuarters = quartersToggle.checked;
-                const applyingForScientistQuarters = scientistToggle ? scientistToggle.checked : null;
+                const applyingForQuarters = quartersToggle ? quartersToggle.checked : false;
+                const applyingForScientistQuarters = scientistToggle ? scientistToggle.checked : false;
 
                 if (!applyingForQuarters && !applyingForScientistQuarters) {
                     e.preventDefault();

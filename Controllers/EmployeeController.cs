@@ -29,7 +29,7 @@ namespace CLRIQTR_EMP.Controllers
 
                 if (!_employeeRepo.CanApplyForNewQuarter(empNo))
                 {
-                    TempData["WarningMessage"] = "You are already in possession of a quarters and cannot start a new application.";
+                    TempData["WarningMessage"] = "You are already a resident of eligible  quarter accomodation.";
                     return RedirectToAction("Index", "Home");
                 }
 
@@ -85,6 +85,20 @@ namespace CLRIQTR_EMP.Controllers
 
             var quarterType = _employeeRepo.GetQuarterTypeByEmpNo(empNo);
             model.QuarterType = quarterType;
+
+            // NEW: SA eligibility & occupancy
+            bool isSaEligible = _employeeRepo.IsScientistQuarterEligible(empNo);
+            bool isSaOccupied = _employeeRepo.IsScientistQuarterAlreadyOccupied(empNo);
+
+            ViewBag.IsSaEligible = isSaEligible;
+            ViewBag.IsSaOccupied = isSaOccupied;
+            ViewBag.ShowScientistOption = isSaEligible && !isSaOccupied;
+
+            
+
+            // NEW: does this emp already occupy their entitled type?
+            bool entitledTypeOccupied = _employeeRepo.IsEntitledQuarterAlreadyOccupied(empNo);
+            ViewBag.EntitledTypeOccupied = entitledTypeOccupied;
 
             return View(model);
         }
