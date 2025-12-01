@@ -7,17 +7,14 @@ using System.IO;
 using System.Linq;
 using System.Web.Mvc;
 
-
 namespace CLRIQTR_EMP.Controllers
 {
     public class EmployeeController : Controller
     {
         private readonly EmployeeRepository _employeeRepo = new EmployeeRepository();
 
-
         public ActionResult Index()
         {
-
             try
             {
                 var empNo = Session["EmpNo"]?.ToString();
@@ -33,12 +30,13 @@ namespace CLRIQTR_EMP.Controllers
                     return RedirectToAction("Index", "Home");
                 }
 
+                // If draft exists, go straight to drafts page
                 if (_employeeRepo.HasDraftApplication(empNo))
                 {
-                    TempData["WarningMessage"] = "You already have a completed application or draft in My Applications Tab.";
+                    return RedirectToAction("ViewDrafts", "Employee");
                 }
 
-                //  Original Flow: Get employee details
+                // Original Flow: Get employee details
                 var employee = _employeeRepo.GetEmployeeByEmpNo(empNo);
 
                 if (employee == null)
@@ -46,9 +44,6 @@ namespace CLRIQTR_EMP.Controllers
                     TempData["ErrorMessage"] = $"Employee with ID {empNo} not found . Contact your E-IV SO of your  Lab.";
                     return RedirectToAction("Index", "Login");
                 }
-
-              
-
 
                 return View(employee);
             }
@@ -58,7 +53,6 @@ namespace CLRIQTR_EMP.Controllers
                 return RedirectToAction("Index", "Home");
             }
         }
-
 
         // GET: New Application Step 1
         [HttpGet]
@@ -86,7 +80,7 @@ namespace CLRIQTR_EMP.Controllers
             var quarterType = _employeeRepo.GetQuarterTypeByEmpNo(empNo);
             model.QuarterType = quarterType;
 
-            // NEW: SA eligibility & occupancy
+            // SA eligibility & occupancy
             bool isSaEligible = _employeeRepo.IsScientistQuarterEligible(empNo);
             bool isSaOccupied = _employeeRepo.IsScientistQuarterAlreadyOccupied(empNo);
 
@@ -94,29 +88,25 @@ namespace CLRIQTR_EMP.Controllers
             ViewBag.IsSaOccupied = isSaOccupied;
             ViewBag.ShowScientistOption = isSaEligible && !isSaOccupied;
 
-            
-
-            // NEW: does this emp already occupy their entitled type?
+            // does this emp already occupy their entitled type?
             bool entitledTypeOccupied = _employeeRepo.IsEntitledQuarterAlreadyOccupied(empNo);
             ViewBag.EntitledTypeOccupied = entitledTypeOccupied;
 
             return View(model);
         }
 
-
         // POST: New Application Step 1 (Next)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult NewApplication(NewApplicationModel model)
         {
-
             Session["ApplyingForQuarters"] = model.ApplyingForQuarters;
             Session["ApplyingForScientistQuarters"] = model.ApplyingForScientistQuarters;
             // Store pay level if needed again
             var payLevel = Session["PayLevel"];
             Session["NewApplicationModel"] = model;
+
             return RedirectToAction("SubmitApplication");
-          
         }
 
         // GET: SubmitApplication (Only Save Draft)
@@ -131,7 +121,7 @@ namespace CLRIQTR_EMP.Controllers
 
             if (!string.IsNullOrEmpty(draftId))
             {
-                // Your existing draft loading code...
+                // Existing draft loading code...
                 var tokens = draftId.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 var firstDraftId = tokens.FirstOrDefault();
 
@@ -163,19 +153,12 @@ namespace CLRIQTR_EMP.Controllers
             bool hasPhysicalDisability = _employeeRepo.HasPhysicalDisability(empNo);
             model.ShowDisabilityFields = hasPhysicalDisability;
 
-
             var employee = _employeeRepo.GetEmployeeByEmpNo(empNo);
             model.DesignationCode = employee.Designation;
-            model.DateOfJoining = employee.DOJ_dt;       
-
+            model.DateOfJoining = employee.DOJ_dt;
 
             return View(model);
         }
-
-
-
-
-        
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -205,12 +188,16 @@ namespace CLRIQTR_EMP.Controllers
                 ? Convert.ToBoolean(Session["ApplyingForScientistQuarters"])
                 : _employeeRepo.GetApplyingForScientistQuartersFromDb(empNo);
 
+            // SA eligibility
+            bool isSaEligible = _employeeRepo.IsScientistQuarterEligible(empNo);
+            bool isSaOccupied = _employeeRepo.IsScientistQuarterAlreadyOccupied(empNo);
+            bool scientistOptionAvailable = isSaEligible && !isSaOccupied;
+
             bool savedeqtr = false;
             bool savedsaqtr = false;
 
             Debug.WriteLine(model.SaQtrAppNo);
             Debug.WriteLine(model.QtrAppNo);
-
 
             // Handle EQTR Apply
             if (ApplyingForQuarters)
@@ -219,7 +206,18 @@ namespace CLRIQTR_EMP.Controllers
                 entity.EmpNo = empNo;
                 entity.AppStatus = appStatus;
                 entity.EqtrTypeSel = "Y";
-                entity.Saint = ApplyingForScientistQuarters ? "SI" : "SNI";
+
+                // Saint logic:
+                // - If option not available => NA
+                // - Else Yes => SI, No => SNI
+                if (!scientistOptionAvailable)
+                {
+                    entity.Saint = "NA";
+                }
+                else
+                {
+                    entity.Saint = ApplyingForScientistQuarters ? "SI" : "SNI";
+                }
 
                 // Ensure it has its own QtrAppNo
                 if (string.IsNullOrEmpty(model.QtrAppNo))
@@ -227,37 +225,28 @@ namespace CLRIQTR_EMP.Controllers
                     entity.QtrAppNo = _employeeRepo.GenerateNewEqtrAppNo(empNo); // New method
                     model.QtrAppNo = entity.QtrAppNo; // Save back to model for linking
                     savedeqtr = _employeeRepo.InsertEqtrApply(entity);
-
-                    
-
-
                 }
                 else
                 {
-                    savedsaqtr = _employeeRepo.UpdateEqtrApply(entity);
-                   
-
+                    savedeqtr = _employeeRepo.UpdateEqtrApply(entity);
                 }
-
             }
 
-            if (ApplyingForScientistQuarters)
+            // SAQTR only if eligible AND user selected Yes
+            if (scientistOptionAvailable && ApplyingForScientistQuarters)
             {
                 var entity = MapToSaEqtrApply(model);
                 entity.EmpNo = empNo;
                 entity.AppStatus = appStatus;
                 entity.Saint = "SI";
 
-              
-                if(_employeeRepo.GetApplyingForScientistQuartersFromDb(empNo))
+                if (_employeeRepo.GetApplyingForScientistQuartersFromDb(empNo))
                 {
                     savedsaqtr = _employeeRepo.UpdateSaEqtrApply(entity);
 
                     Debug.WriteLine(model);
                     Debug.WriteLine("Line2");
-
                 }
-                // Generate separate app no for SAQTR
                 else
                 {
                     entity.SaQtrAppNo = _employeeRepo.GenerateNewSaEqtrAppNo(empNo); // New method
@@ -267,10 +256,7 @@ namespace CLRIQTR_EMP.Controllers
                     Debug.WriteLine(model);
                     Debug.WriteLine("Line1");
                 }
-
-
             }
-
 
             if (savedeqtr || savedsaqtr)
             {
@@ -284,8 +270,6 @@ namespace CLRIQTR_EMP.Controllers
             return View(model);
         }
 
-
-
         // GET: ViewDrafts
         public ActionResult ViewDrafts()
         {
@@ -297,9 +281,14 @@ namespace CLRIQTR_EMP.Controllers
                                       .Where(d => d.AppStatus == "D" || d.AppStatus == "C")
                                       .ToList();
 
+            if (!drafts.Any())
+            {
+                // now safe to go to Index; HasDraftApplication(empNo) will be false
+                return RedirectToAction("Index");
+            }
+
             return View(drafts);
         }
-
 
         // POST: SubmitDraft (Final Submission)
         [HttpPost]
@@ -319,18 +308,29 @@ namespace CLRIQTR_EMP.Controllers
                 return RedirectToAction("ViewDrafts");
             }
 
-           
+            // (Final submission logic can be added here if needed)
 
             return RedirectToAction("ViewDrafts");
         }
-
-
 
         // --- Mapping Methods ---
 
         private EqtrApply MapToEqtrApply(NewApplicationModel model)
         {
-
+            // Decide lower type flag based on quarter type
+            string lowerTypeSel;
+            if (model.QuarterType == "V")
+            {
+                // Only for Type V – yes/no matters
+                lowerTypeSel = (model.InterestedForLowerType?.Trim().ToLower() == "interested")
+                    ? "I"
+                    : "NI";
+            }
+            else
+            {
+                // For all other types – NA
+                lowerTypeSel = "NA";
+            }
 
             return new EqtrApply
             {
@@ -344,7 +344,7 @@ namespace CLRIQTR_EMP.Controllers
                 IsHouseEightKm = "NA",
                 NewOrCor = "NA",
                 CpAccom = model.PresentResidence ?? "NA",
-                LowerTypeSel = (model.InterestedForLowerType?.Trim().ToLower() == "interested") ? "I" : "NI",
+                LowerTypeSel = lowerTypeSel,
                 Doa = model.DateOfApplication?.ToString("dd/MM/yyyy") ?? DateTime.Now.ToString("dd/MM/yyyy"),
                 Toe = model.QuarterType ?? "NA",
                 QtrRes = "NA",
@@ -355,19 +355,34 @@ namespace CLRIQTR_EMP.Controllers
                 SurPost = model.SuretyPermanentPost ?? "NA",
                 SurDesig = model.SuretyDesignation ?? "NA",
                 LabCode = Session["Lab"]?.ToString() ?? "NA",
-                Saint = Session["ApplyingForScientistQuarters"] is bool applyingScientist && applyingScientist ? "SI" : "SNI",
+
+                // Saint will be set in SubmitApplication based on eligibility
+                // Saint = ...
+
                 EqtrTypeSel = Session["ApplyingForQuarters"] is bool applyingQuarters && applyingQuarters ? "Y" : "N",
                 Ess = model.ServicesEssential == "Yes" ? "Y" : "N",
                 Cco = model.IsCommonCadreOfficer == "Yes" ? "Y" : "N",
                 DisDesc = model.NatureOfDisability ?? "NA",
                 SpouseWorking = model.SpouseWorking == "Yes" ? "Y" : "N",
                 SpouseOffice = model.SpouseOfficeName ?? "NA",
-
             };
         }
 
         private SaEqtrApply MapToSaEqtrApply(NewApplicationModel model)
         {
+            // ✅ Same lower-type logic for SA table
+            string saLowerTypeSel;
+            if (model.QuarterType == "V")
+            {
+                saLowerTypeSel = (model.InterestedForLowerType?.Trim().ToLower() == "interested")
+                    ? "I"
+                    : "NI";
+            }
+            else
+            {
+                saLowerTypeSel = "NA";
+            }
+
             return new SaEqtrApply
             {
                 SaQtrAppNo = null,
@@ -380,7 +395,7 @@ namespace CLRIQTR_EMP.Controllers
                 IsHouseEightKm = "NA",
                 NewOrCor = "NA",
                 CpAccom = model.PresentResidence ?? "NA",
-                LowerTypeSel = (model.InterestedForLowerType?.Trim().ToLower() == "interested") ? "I" : "NI",
+                LowerTypeSel = saLowerTypeSel,      // ✅ now I/NI only for type V, else NA
                 Saint = "SI",
                 Doa = model.DateOfApplication?.ToString("dd/MM/yyyy") ?? DateTime.Now.ToString("dd/MM/yyyy"),
                 Toe = model.QuarterType ?? "NA",
@@ -394,22 +409,26 @@ namespace CLRIQTR_EMP.Controllers
                 LabCode = Session["Lab"]?.ToString() ?? "NA",
                 SpouseWorking = model.SpouseWorking == "Yes" ? "Y" : "N",
                 SpouseOffice = model.SpouseOfficeName ?? "NA",
-
             };
         }
 
 
-
-
         private NewApplicationModel MapEqtrApplyToModel(EqtrApply entity)
         {
+            string lowerTypeValue;
+            if (entity.LowerTypeSel == "I")
+                lowerTypeValue = "Interested";
+            else if (entity.LowerTypeSel == "NI")
+                lowerTypeValue = "Not Interested";
+            else
+                lowerTypeValue = null; // For "NA" or anything else
+
             return new NewApplicationModel
             {
                 QtrAppNo = entity.QtrAppNo,
-
                 PresentResidence = entity.CpAccom,
 
-                InterestedForLowerType = entity.LowerTypeSel == "I" ? "Interested" : "Not Interested",
+                InterestedForLowerType = lowerTypeValue,
                 OwnHouse = entity.OwnHouse == "O" ? "Yes" : "No",
                 OwnerName = entity.OwnName,
                 OwnerAddress = entity.OwnAdd,
@@ -422,17 +441,21 @@ namespace CLRIQTR_EMP.Controllers
                 ServicesEssential = entity.Ess == "Y" ? "Yes" : "No",
                 IsCommonCadreOfficer = entity.Cco == "Y" ? "Yes" : "No",
                 FamilyDetails = null,
-                //ApplyingForQuarters = entity.EqtrTypeSel == "Y" ? true : (bool?)false,
-                //ApplyingForScientistQuarters = entity.Saint == "SI" ? true : (bool?)false,
+
                 ApplyingForQuarters = entity.EqtrTypeSel == "Y",
                 ApplyingForScientistQuarters = entity.Saint == "SI",
 
-                //LowerType = entity.InterestedForLowerType,  // might be "I" or "NI", keep as is or map?
                 TypeEligible = entity.Toe,
                 EmpMobileNumber = entity.EmpMobNo,
-                // DateOfApplication string to DateTime? with parse fallback
-                DateOfApplication = DateTime.TryParseExact(entity.Doa, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out var date)
-                    ? date : (DateTime?)null,
+
+                DateOfApplication = DateTime.TryParseExact(
+                    entity.Doa,
+                    "dd/MM/yyyy",
+                    null,
+                    System.Globalization.DateTimeStyles.None,
+                    out var date
+                ) ? date : (DateTime?)null,
+
                 LabCode = entity.LabCode,
                 AppStatus = entity.AppStatus,
                 NatureOfDisability = entity.DisDesc,
@@ -441,26 +464,7 @@ namespace CLRIQTR_EMP.Controllers
             };
         }
 
-
-       
-        //[HttpGet]
-        //public ActionResult DownloadPdf(string qtrAppNo)
-        //{
-        //    var tokens = qtrAppNo.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        //    var firstDraftId = tokens.FirstOrDefault();
-
-        //    var application = _employeeRepo.GetQuarterApplicationDetails(qtrAppNo);
-        //    if (application == null)
-        //        return HttpNotFound();
-
-        //    return new Rotativa.ViewAsPdf("Pdf", application)
-        //    {
-        //        FileName = $"Application_{qtrAppNo}.pdf",
-        //        PageSize = Rotativa.Options.Size.A4,
-        //        PageMargins = new Rotativa.Options.Margins(20, 15, 15, 15)
-        //    };
-        //}
-
+        // PDF Download
         [HttpGet]
         public ActionResult DownloadPdf(string qtrAppNo)
         {
@@ -515,9 +519,8 @@ namespace CLRIQTR_EMP.Controllers
             var empNo = Session["EmpNo"]?.ToString();
 
             // Send the merged PDF to the client
-            return File(mergedPdf, "application/pdf", empNo+".pdf");
+            return File(mergedPdf, "application/pdf", empNo + ".pdf");
         }
-
 
         private byte[] MergePdfFiles(List<byte[]> pdfFiles)
         {
@@ -542,10 +545,5 @@ namespace CLRIQTR_EMP.Controllers
                 return outStream.ToArray();
             }
         }
-
-
-
-
     }
-
 }

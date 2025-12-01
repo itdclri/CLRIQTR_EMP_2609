@@ -906,7 +906,7 @@ SELECT
     fd.AggregatedFamilyDetails AS familydetails, 
     
     t.qtrtype AS entitledtype, e.qtrres, e.ownhouse, e.ownname, 
-    e.ownadd AS owneraddress, e.ishouseeightkm AS ishouseletout, 
+    e.ownadd AS owneraddress, e.isrent AS ishouseletout, 
     e.ownrent AS rentreceived, e.permtemp, e.surname AS suretyname, 
     e.surpost AS suretydesignation, e.surdesig AS suretypost, e.ess, e.cco,e.SpouseWorking, e.SpouseOffice
 FROM eqtrapply e
@@ -1030,12 +1030,12 @@ SELECT e.saint,
     e.ownhouse, 
     e.ownname, 
     e.ownadd AS owneraddress,
-    e.ishouseeightkm AS ishouseletout, 
+    e.isrent AS ishouseletout, 
     e.ownrent AS rentreceived,
     e.permtemp, 
     e.surname AS suretyname, 
     e.surpost AS suretydesignation, 
-    e.surdesig AS suretypost,e.SpouseWorking, e.SpouseOffice
+    e.surdesig AS suretypost,e.SpouseWorking, e.SpouseOffice,e.lowertypesel
 FROM saeqtrapply e
 LEFT JOIN empmast em ON e.empno = em.empno
 LEFT JOIN desmast d ON em.designation = d.desid
@@ -1099,7 +1099,9 @@ WHERE e.saqtrappno = @qtrAppNo";
                             SuretyDesignation = GetString(reader1, "suretydesignation"),
                             SuretyPost = GetString(reader1, "suretypost"),
                             SpouseWorking = GetString(reader1, "SpouseWorking"),
-                            SpouseOfficeName = GetString(reader1, "SpouseOffice")
+                            SpouseOfficeName = GetString(reader1, "SpouseOffice"),
+                            lowertypesel= GetString(reader1, "lowertypesel")
+
 
 
                         };
