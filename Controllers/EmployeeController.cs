@@ -117,7 +117,9 @@ namespace CLRIQTR_EMP.Controllers
             if (string.IsNullOrEmpty(empNo))
                 return RedirectToAction("Login", "Account");
 
-            NewApplicationModel model;
+            NewApplicationModel model ;
+
+           
 
             if (!string.IsNullOrEmpty(draftId))
             {
@@ -156,6 +158,21 @@ namespace CLRIQTR_EMP.Controllers
             var employee = _employeeRepo.GetEmployeeByEmpNo(empNo);
             model.DesignationCode = employee.Designation;
             model.DateOfJoining = employee.DOJ_dt;
+
+            if (!string.IsNullOrEmpty(empNo))
+            {
+                var status = _employeeRepo.GetQtrStatus(empNo); // returns "IQ" or "OQ"
+
+                if (status == "IQ")
+                {
+                    model.PresentResidence = _employeeRepo.GetQtrNo(empNo); // sets qtrno
+                    model.IsQtrReadonly = true;
+                }
+                else
+                {
+                    model.IsQtrReadonly = false;
+                }
+            }
 
             return View(model);
         }

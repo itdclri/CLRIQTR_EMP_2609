@@ -150,12 +150,26 @@
         </div>
 
         <div class="row mb-3 align-items-center">
-            @Html.LabelFor(m => m.PresentResidence, "Present Place of Residence with Full Address", htmlAttributes: new { @class = "col-md-6 col-form-label fw-bold" })
+            @Html.LabelFor(m => m.PresentResidence, "Present Place of Residence with Full Address",
+                new { @class = "col-md-6 col-form-label fw-bold" })
+
             <div class="col-md-6">
-                @Html.TextBoxFor(m => m.PresentResidence, new { @class = "form-control", placeholder = "Enter your present residence address" })
+
+                @if (Model.IsQtrReadonly)
+                {
+                    @Html.TextBoxFor(m => m.PresentResidence,
+                        new { @class = "form-control", @readonly = "readonly" })
+                }
+                else
+                {
+                    @Html.TextBoxFor(m => m.PresentResidence,
+                        new { @class = "form-control", placeholder = "Enter your present residence address" })
+                }
+
                 @Html.ValidationMessageFor(m => m.PresentResidence, "", new { @class = "text-danger" })
             </div>
         </div>
+
 
         if (isTypeV)
         {

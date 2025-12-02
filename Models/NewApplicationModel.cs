@@ -77,6 +77,9 @@ namespace CLRIQTR_EMP.Models
         [Display(Name = "Are you a Common Cadre Officer")]
         public string IsCommonCadreOfficer { get; set; } // Yes/No
 
+        public bool IsQtrReadonly { get; set; }
+
+
         // ✅ New properties for dynamic lower type selection
         public string LowerType { get; set; }  // immediate lower entitlement
         public List<string> LowerTypesAvailable { get; set; } // all lower entitlements
