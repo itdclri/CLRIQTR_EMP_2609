@@ -235,45 +235,86 @@
                 }
             </td>
         </tr>
-
+        @{
+            var ownsHouse = (Model.OwnHouse ?? "").Trim().ToUpper();     // O / NO
+            var isRent = (Model.IsHouseLetOut ?? "").Trim().ToUpper();   // R / NR
+        }
         <tr>
             <td class="sno">23</td>
             <td class="label">
-                Whether the applicant owns a house either in his/her own name or in his/her spouse's name within the municipal limits of Greater Chennai
+                Whether the applicant owns a house either in his/her own name or in his/her spouse's name
+                within the municipal limits of Greater Chennai
             </td>
             <td class="value">
-                @if (Model.OwnHouse == "O")
+                @if (ownsHouse == "O")
                 {
                     @:Yes
                 }
-                else if (Model.OwnHouse == "NO")
+                else if (ownsHouse == "NO")
                 {
                     @:No
                 }
                 else
                 {
-                    @Model.OwnHouse
+                    @Model.OwnHouse// fallback
                 }
             </td>
         </tr>
-        <tr><td class="sno">&nbsp;</td><td class="label" style="font-weight:bold;">If yes, please furnish details such as</td><td class="value">&nbsp;</td></tr>
-        <tr><td class="sno">&nbsp;</td><td class="label">a) Owner's Name:</td><td class="value">@Model.OwnerName</td></tr>
-        <tr><td class="sno">&nbsp;</td><td class="label">b) Owner's Address:</td><td class="value">@Model.OwnerAddress</td></tr>
         <tr>
             <td class="sno">&nbsp;</td>
-            <td class="label">c)  If yes, whether the house is letout (Yes /No)</td>
+            <td class="label" style="font-weight:bold;">If yes, please furnish details such as</td>
+            <td class="value">&nbsp;</td>
+        </tr>
+        <tr>
+            <td class="sno">&nbsp;</td>
+            <td class="label">a) Owner's Name:</td>
             <td class="value">
-                @if (Model.IsHouseLetOut == "R")
+                @(ownsHouse == "O" ? (Model.OwnerName ?? "NA") : "NA")
+            </td>
+        </tr>
+        <tr>
+            <td class="sno">&nbsp;</td>
+            <td class="label">b) Owner's Address:</td>
+            <td class="value">
+                @(ownsHouse == "O" ? (Model.OwnerAddress ?? "NA") : "NA")
+            </td>
+        </tr>
+        <tr>
+            <td class="sno">&nbsp;</td>
+            <td class="label">c) If yes, whether the house is letout (Yes / No)</td>
+            <td class="value">
+                @if (ownsHouse != "O")
+                {
+                    @:NA
+                }
+                else if (isRent == "R")
                 {
                     @:Yes
                 }
+                else if (isRent == "NR")
+                {
+                    @:No
+                }
                 else
                 {
-                    @Model.IsHouseLetOut
+                    @:NA
                 }
             </td>
         </tr>
-        <tr><td class="sno">&nbsp;</td><td class="label">d)  If yes, the monthly rent received</td><td class="value">@Model.RentReceived</td></tr>
+        <tr>
+            <td class="sno">&nbsp;</td>
+            <td class="label">d) If yes, the monthly rent received</td>
+            <td class="value">
+                @if (ownsHouse == "O" && isRent == "R")
+                {
+                    @Model.RentReceived
+                }
+                else
+                {
+                    @:NA
+                }
+            </td>
+        </tr>
         <tr>
             <td class="sno">24</td>
             <td class="label">State whether permanent or temporary</td>

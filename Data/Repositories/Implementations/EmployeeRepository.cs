@@ -226,11 +226,11 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                 INSERT INTO saeqtrapply
                 (saqtrappno, empno, ownhouse, ownname, ownadd, isrent, ownrent, ishouseeightkm, neworcor,
                  cpaccom, lowertypesel, saint, doa, toe, qtrres, empmobno, appstatus, permtemp,
-                 surname, surpost, surdesig, labcode,SpouseWorking, SpouseOffice)
+                 surname, surpost, surdesig, labcode,SpouseWorking, SpouseOffice,eqtrtypesel, ess, cco, disdesc)
                 VALUES
                 (@saqtrappno, @empno, @ownhouse, @ownname, @ownadd, @isrent, @ownrent, @ishouseeightkm, @neworcor,
                  @cpaccom, @lowertypesel, @saint, @doa, @toe, @qtrres, @empmobno, @appstatus, @permtemp,
-                 @surname, @surpost, @surdesig, @labcode,@SpouseWorking, @SpouseOffice)", conn);
+                 @surname, @surpost, @surdesig, @labcode,@SpouseWorking, @SpouseOffice,@eqtrtypesel, @ess, @cco, @disdesc)", conn);
 
                     // Add parameters with default/null-safe values
                     cmd.Parameters.AddWithValue("@saqtrappno", entity.SaQtrAppNo);
@@ -257,6 +257,10 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
                     cmd.Parameters.AddWithValue("@labcode", entity.LabCode ?? "NA");
                     cmd.Parameters.AddWithValue("@SpouseWorking", entity.SpouseWorking ?? "NA");
                     cmd.Parameters.AddWithValue("@SpouseOffice", entity.SpouseOffice ?? "NA");
+                    cmd.Parameters.AddWithValue("@eqtrtypesel", entity.EqtrTypeSel ?? "NA");
+                    cmd.Parameters.AddWithValue("@ess", entity.Ess ?? "NA");
+                    cmd.Parameters.AddWithValue("@cco", entity.Cco ?? "NA");
+                    cmd.Parameters.AddWithValue("@disdesc", entity.DisDesc ?? "NA");
 
                     int rows = cmd.ExecuteNonQuery();
                     return rows > 0;
@@ -476,7 +480,7 @@ SpouseWorking = @SpouseWorking,
             if (string.IsNullOrEmpty(qtrAppNo))
                 return null;
 
-const string sql = @"SELECT qtrappno, appstatus, empno, ownhouse, ownname, ownadd, isrent, ownrent, ishouseeightkm, neworcor, cpaccom, lowertypesel, saint, doa, toe, qtrres, empmobno, permtemp, surname, surpost, surdesig, labcode, eqtrtypesel, ess, cco, disdesc,SpouseWorking,SpouseOffice FROM eqtrapply WHERE qtrAppNo = @qtrAppNo AND (appstatus = 'D' OR appstatus = 'C') UNION SELECT saqtrappno AS qtrappno, appstatus, empno, ownhouse, ownname, ownadd, isrent, ownrent, ishouseeightkm, neworcor, cpaccom, lowertypesel, saint, doa, toe, qtrres, empmobno, permtemp, surname, surpost, surdesig, labcode, NULL AS eqtrtypesel, NULL AS ess, NULL AS cco, NULL AS disdesc,SpouseWorking,SpouseOffice FROM saeqtrapply WHERE saqtrAppNo = @qtrAppNo AND (appstatus = 'D' OR appstatus = 'C')";
+const string sql = @"SELECT qtrappno, appstatus, empno, ownhouse, ownname, ownadd, isrent, ownrent, ishouseeightkm, neworcor, cpaccom, lowertypesel, saint, doa, toe, qtrres, empmobno, permtemp, surname, surpost, surdesig, labcode, eqtrtypesel, ess, cco, disdesc,SpouseWorking,SpouseOffice FROM eqtrapply WHERE qtrAppNo = @qtrAppNo AND (appstatus = 'D' OR appstatus = 'C') UNION SELECT saqtrappno AS qtrappno, appstatus, empno, ownhouse, ownname, ownadd, isrent, ownrent, ishouseeightkm, neworcor, cpaccom, lowertypesel, saint, doa, toe, qtrres, empmobno, permtemp, surname, surpost, surdesig, labcode, eqtrtypesel, ess, cco, disdesc,SpouseWorking,SpouseOffice FROM saeqtrapply WHERE saqtrAppNo = @qtrAppNo AND (appstatus = 'D' OR appstatus = 'C')";
 
             try
             {
@@ -908,7 +912,7 @@ SELECT
     t.qtrtype AS entitledtype, e.qtrres, e.ownhouse, e.ownname, 
     e.ownadd AS owneraddress, e.isrent AS ishouseletout, 
     e.ownrent AS rentreceived, e.permtemp, e.surname AS suretyname, 
-    e.surpost AS suretydesignation, e.surdesig AS suretypost, e.ess, e.cco,e.SpouseWorking, e.SpouseOffice
+    e.surpost AS suretypost, e.surdesig AS suretydesignation, e.ess, e.cco,e.SpouseWorking, e.SpouseOffice
 FROM eqtrapply e
 LEFT JOIN empmast em ON e.empno = em.empno
 LEFT JOIN desmast d ON em.designation = d.desid
@@ -1034,8 +1038,8 @@ SELECT e.saint,
     e.ownrent AS rentreceived,
     e.permtemp, 
     e.surname AS suretyname, 
-    e.surpost AS suretydesignation, 
-    e.surdesig AS suretypost,e.SpouseWorking, e.SpouseOffice,e.lowertypesel
+    e.surpost AS suretypost, 
+    e.surdesig AS suretydesignation,e.SpouseWorking, e.SpouseOffice,e.lowertypesel,e.eqtrtypesel,e.ess, e.cco,e.disdesc AS disabilitydetails
 FROM saeqtrapply e
 LEFT JOIN empmast em ON e.empno = em.empno
 LEFT JOIN desmast d ON em.designation = d.desid
@@ -1046,7 +1050,7 @@ LEFT JOIN FamilyDetailsCTE fd ON e.empno = fd.empno
 
 WHERE e.saqtrappno = @qtrAppNo";
 
-            const string sql2 = @"SELECT e.eqtrtypesel, e.CCO, e.ess
+           /* const string sql2 = @"SELECT e.eqtrtypesel, e.CCO, e.ess
     FROM eqtrapply e
     LEFT JOIN empmast em ON e.empno = em.empno
     LEFT JOIN desmast d ON em.designation = d.desid
@@ -1054,7 +1058,7 @@ WHERE e.saqtrappno = @qtrAppNo";
     LEFT JOIN typeligibility t ON em.paylvl = t.paylvl
     
     WHERE e.empno = @empno
-    LIMIT 1";
+    LIMIT 1";*/
 
             using (var conn = new MySqlConnection(_connStr))
             using (var cmd1 = new MySqlCommand(sql1, conn))
@@ -1100,7 +1104,11 @@ WHERE e.saqtrappno = @qtrAppNo";
                             SuretyPost = GetString(reader1, "suretypost"),
                             SpouseWorking = GetString(reader1, "SpouseWorking"),
                             SpouseOfficeName = GetString(reader1, "SpouseOffice"),
-                            lowertypesel= GetString(reader1, "lowertypesel")
+                            lowertypesel= GetString(reader1, "lowertypesel"),
+                            DisabilityDetails = GetString(reader1, "disabilitydetails"),
+                            ServicesEssential = GetString(reader1, "ess"),
+                            cco = GetString(reader1, "cco"),
+                            eqtrtypesel = GetString(reader1, "eqtrtypesel"),
 
 
 
@@ -1108,7 +1116,7 @@ WHERE e.saqtrappno = @qtrAppNo";
                     }
                 }
 
-                if (dto != null)
+                /*if (dto != null)
                 {
                     // Now get the additional data from the second query
                     using (var cmd2 = new MySqlCommand(sql2, conn))
@@ -1128,7 +1136,7 @@ WHERE e.saqtrappno = @qtrAppNo";
                             }
                         }
                     }
-                }
+                }*/
 
                 return dto;
             }
@@ -1483,6 +1491,39 @@ GROUP BY
             {
                 Debug.WriteLine("IsScientistQuarterAlreadyOccupied error: " + ex.Message);
                 return false;
+            }
+        }
+
+
+        public string GetCurrentResidence(string empNo)
+        {
+            const string sql = @"
+        SELECT 
+            -- TODO: adjust this CONCAT to match your actual columns in qtrupd
+            CONCAT('Type ', SUBSTRING_INDEX(q.qtrtype,' ',1),
+                   ' Quarter No. ', q.qtrno, 
+                   ' (', q.qtrtype, ')') AS Residence
+        FROM qtrupd q
+        WHERE q.empno = @empNo
+          AND q.qtrstatus = 'O'
+        LIMIT 1";
+
+            try
+            {
+                using (var conn = new MySqlConnection(_connStr))
+                using (var cmd = new MySqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@empNo", empNo);
+                    conn.Open();
+
+                    var result = cmd.ExecuteScalar();
+                    return result == null || result is DBNull ? string.Empty : result.ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("GetCurrentResidence error: " + ex.Message);
+                return string.Empty;
             }
         }
 

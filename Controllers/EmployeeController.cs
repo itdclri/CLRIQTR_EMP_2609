@@ -92,6 +92,13 @@ namespace CLRIQTR_EMP.Controllers
             bool entitledTypeOccupied = _employeeRepo.IsEntitledQuarterAlreadyOccupied(empNo);
             ViewBag.EntitledTypeOccupied = entitledTypeOccupied;
 
+            // ✅ NEW: “already resident” = occupies *any* CLRI quarter, irrespective of type
+            var currentResidence = _employeeRepo.GetCurrentResidence(empNo);   // "" if not resident
+            bool alreadyResident = !string.IsNullOrWhiteSpace(currentResidence);
+
+            ViewBag.AlreadyResident = alreadyResident;
+            ViewBag.CurrentResidence = currentResidence;
+
             return View(model);
         }
 
@@ -143,12 +150,32 @@ namespace CLRIQTR_EMP.Controllers
                 model = Session["NewApplicationModel"] as NewApplicationModel ?? new NewApplicationModel();
             }
 
+
+            bool applyingForQuarters =
+            Session["ApplyingForQuarters"] != null && (bool)Session["ApplyingForQuarters"];
+
+            bool applyingForScientistQuarters =
+                Session["ApplyingForScientistQuarters"] != null && (bool)Session["ApplyingForScientistQuarters"];
+
+            model.ApplyingForQuarters = applyingForQuarters;
+            model.ApplyingForScientistQuarters = applyingForScientistQuarters;
+
+
             // Populate FamilyDetails here
             model.FamilyDetails = _employeeRepo.GetFamilyDetailsByEmpNo(empNo);
 
             // Existing quarter type & disability flags
             var quarterType = _employeeRepo.GetQuarterTypeByEmpNo(empNo);
             model.QuarterType = quarterType;
+
+            if (!applyingForQuarters && applyingForScientistQuarters)
+            {
+                model.QuarterType = "SA";
+            }
+            else
+            {
+                model.QuarterType = quarterType;
+            }
 
             bool hasPhysicalDisability = _employeeRepo.HasPhysicalDisability(empNo);
             model.ShowDisabilityFields = hasPhysicalDisability;
@@ -157,9 +184,25 @@ namespace CLRIQTR_EMP.Controllers
             model.DesignationCode = employee.Designation;
             model.DateOfJoining = employee.DOJ_dt;
 
+            // 🔹 NEW: if already resident, bring residence from qtrupd & lock the field
+            bool entitledTypeOccupied = _employeeRepo.IsEntitledQuarterAlreadyOccupied(empNo);
+            bool isSaOccupied = _employeeRepo.IsScientistQuarterAlreadyOccupied(empNo);
+
+            var currentResidence = _employeeRepo.GetCurrentResidence(empNo);  // "" if none
+            model.IsCurrentResident = !string.IsNullOrWhiteSpace(currentResidence);
+            model.CurrentResidenceFromDb = currentResidence;
+
+            if (model.IsCurrentResident)
+            {
+                // Pre-fill and lock PresentResidence textbox
+                model.PresentResidence = currentResidence;
+                model.LockPresentResidence = true;
+            }
+
             return View(model);
         }
 
+        /*
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult SubmitApplication(NewApplicationModel model, string action)
@@ -174,6 +217,13 @@ namespace CLRIQTR_EMP.Controllers
             // Check for physical disability
             bool hasPhysicalDisability = _employeeRepo.HasPhysicalDisability(empNo);
             model.ShowDisabilityFields = hasPhysicalDisability;
+
+
+            if (!ModelState.IsValid)
+            {
+               return View(model);
+            }
+
 
             string appStatus = "D"; // Default status: Draft
             if (action == "Submit")
@@ -268,7 +318,196 @@ namespace CLRIQTR_EMP.Controllers
 
             ModelState.AddModelError("", "Error saving application.");
             return View(model);
+        }*/
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult SubmitApplication(NewApplicationModel model, string action)
+        {
+            var empNo = Session["EmpNo"]?.ToString();
+
+
+            if (string.IsNullOrEmpty(empNo))
+                return RedirectToAction("Login", "Account");
+
+           
+
+            // === Re-populate fields that always come from DB / Session ===
+
+            // Type entitlement
+            var quarterType = _employeeRepo.GetQuarterTypeByEmpNo(empNo);
+            model.QuarterType = quarterType;
+
+            // Family details (readonly in view, not posted back)
+            model.FamilyDetails = _employeeRepo.GetFamilyDetailsByEmpNo(empNo);
+
+            // Disability flag
+            bool hasPhysicalDisability = _employeeRepo.HasPhysicalDisability(empNo);
+            model.ShowDisabilityFields = hasPhysicalDisability;
+
+            // Designation & DOJ used in the view to compute Permanent/Temporary
+            var employee = _employeeRepo.GetEmployeeByEmpNo(empNo);
+            if (employee != null)
+            {
+                model.DesignationCode = employee.Designation;
+                model.DateOfJoining = employee.DOJ_dt;
+            }
+
+
+            // ---------- CONDITIONAL VALIDATION ----------
+            
+                // Own house → details required
+                if (model.OwnHouse == "Yes")
+                {
+                    if (string.IsNullOrWhiteSpace(model.OwnerName))
+                        ModelState.AddModelError(nameof(model.OwnerName), "Owner's name is required.");
+                    if (string.IsNullOrWhiteSpace(model.OwnerAddress))
+                        ModelState.AddModelError(nameof(model.OwnerAddress), "Owner's address is required.");
+                    if (string.IsNullOrWhiteSpace(model.HouseLetOut))
+                        ModelState.AddModelError(nameof(model.HouseLetOut), "Please specify whether the house is let out.");
+                }
+
+                // If house is let out → rent required
+                if (model.HouseLetOut == "Yes")
+                {
+                    if (string.IsNullOrWhiteSpace(model.MonthlyRent))
+                        ModelState.AddModelError(nameof(model.MonthlyRent), "Please enter the monthly rent received.");
+                }
+
+                // Temporary → surety details required
+                if (model.PermanentOrTemporary == "Temporary")
+                {
+                    if (string.IsNullOrWhiteSpace(model.SuretyName))
+                        ModelState.AddModelError(nameof(model.SuretyName), "Surety name is required for temporary staff.");
+                    if (string.IsNullOrWhiteSpace(model.SuretyDesignation))
+                        ModelState.AddModelError(nameof(model.SuretyDesignation), "Surety designation is required.");
+                    if (string.IsNullOrWhiteSpace(model.SuretyPermanentPost))
+                        ModelState.AddModelError(nameof(model.SuretyPermanentPost), "Surety permanent post is required.");
+                }
+
+                // Spouse working → office name required
+                if (model.SpouseWorking == "Yes")
+                {
+                    if (string.IsNullOrWhiteSpace(model.SpouseOfficeName))
+                        ModelState.AddModelError(nameof(model.SpouseOfficeName), "Please enter your spouse's office name.");
+                }
+
+                // Disability → nature required
+                if (model.ShowDisabilityFields)
+                {
+                    if (string.IsNullOrWhiteSpace(model.NatureOfDisability))
+                        ModelState.AddModelError(nameof(model.NatureOfDisability), "Please specify the nature of disability.");
+                }
+
+            
+
+            // === Validation – if anything fails, re-show the page with errors ===
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            if (!string.Equals(model.OwnHouse, "Yes", StringComparison.OrdinalIgnoreCase))
+            {
+                model.OwnerName = null;
+                model.OwnerAddress = null;
+                model.HouseLetOut = null;
+                model.MonthlyRent = null;
+            }
+
+            // === From here: your existing save logic ===
+
+            string appStatus = "D"; // Default: Draft
+            if (action == "Submit")
+                appStatus = "C";     // Submitted
+
+            // Get applying preferences from session or DB
+            bool ApplyingForQuarters = Session["ApplyingForQuarters"] != null
+                ? Convert.ToBoolean(Session["ApplyingForQuarters"])
+                : _employeeRepo.GetApplyingForQuartersFromDb(empNo);
+
+            bool ApplyingForScientistQuarters = Session["ApplyingForScientistQuarters"] != null
+                ? Convert.ToBoolean(Session["ApplyingForScientistQuarters"])
+                : _employeeRepo.GetApplyingForScientistQuartersFromDb(empNo);
+
+            // SA eligibility
+            bool isSaEligible = _employeeRepo.IsScientistQuarterEligible(empNo);
+            bool isSaOccupied = _employeeRepo.IsScientistQuarterAlreadyOccupied(empNo);
+            bool scientistOptionAvailable = isSaEligible && !isSaOccupied;
+
+            bool savedeqtr = false;
+            bool savedsaqtr = false;
+
+            Debug.WriteLine(model.SaQtrAppNo);
+            Debug.WriteLine(model.QtrAppNo);
+
+            // Handle EQTR Apply
+            if (ApplyingForQuarters)
+            {
+                var entity = MapToEqtrApply(model);
+                entity.EmpNo = empNo;
+                entity.AppStatus = appStatus;
+                entity.EqtrTypeSel = "Y";
+
+                // Saint logic
+                if (!scientistOptionAvailable)
+                {
+                    entity.Saint = "NA";
+                }
+                else
+                {
+                    entity.Saint = ApplyingForScientistQuarters ? "SI" : "SNI";
+                }
+
+                if (string.IsNullOrEmpty(model.QtrAppNo))
+                {
+                    entity.QtrAppNo = _employeeRepo.GenerateNewEqtrAppNo(empNo);
+                    model.QtrAppNo = entity.QtrAppNo;
+                    savedeqtr = _employeeRepo.InsertEqtrApply(entity);
+                }
+                else
+                {
+                    savedeqtr = _employeeRepo.UpdateEqtrApply(entity);
+                }
+            }
+
+            // SAQTR only if eligible AND user selected Yes
+            if (scientistOptionAvailable && ApplyingForScientistQuarters)
+            {
+                var entity = MapToSaEqtrApply(model);
+                entity.EmpNo = empNo;
+                entity.AppStatus = appStatus;
+                entity.Saint = "SI";
+
+                if (_employeeRepo.GetApplyingForScientistQuartersFromDb(empNo))
+                {
+                    savedsaqtr = _employeeRepo.UpdateSaEqtrApply(entity);
+                    Debug.WriteLine(model);
+                    Debug.WriteLine("Line2");
+                }
+                else
+                {
+                    entity.SaQtrAppNo = _employeeRepo.GenerateNewSaEqtrAppNo(empNo);
+                    model.SaQtrAppNo = entity.SaQtrAppNo;
+                    savedsaqtr = _employeeRepo.InsertSaEqtrApply(entity);
+                    Debug.WriteLine(model);
+                    Debug.WriteLine("Line1");
+                }
+            }
+
+            if (savedeqtr || savedsaqtr)
+            {
+                TempData["Message"] = appStatus == "D"
+                    ? "Draft saved successfully!"
+                    : "Application submitted successfully!";
+                return RedirectToAction("ViewDrafts");
+            }
+
+            ModelState.AddModelError("", "Error saving application.");
+            return View(model);
         }
+
 
         // GET: ViewDrafts
         public ActionResult ViewDrafts()
@@ -409,6 +648,10 @@ namespace CLRIQTR_EMP.Controllers
                 LabCode = Session["Lab"]?.ToString() ?? "NA",
                 SpouseWorking = model.SpouseWorking == "Yes" ? "Y" : "N",
                 SpouseOffice = model.SpouseOfficeName ?? "NA",
+                EqtrTypeSel = Session["ApplyingForQuarters"] is bool applyingQuarters && applyingQuarters ? "Y" : "N",
+                Ess = model.ServicesEssential == "Yes" ? "Y" : "N",
+                Cco = model.IsCommonCadreOfficer == "Yes" ? "Y" : "N",
+                DisDesc = model.NatureOfDisability ?? "NA",
             };
         }
 

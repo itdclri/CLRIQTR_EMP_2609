@@ -1,4 +1,4 @@
-@model CLRIQTR_EMP.Models.NewApplicationModel
+﻿@model CLRIQTR_EMP.Models.NewApplicationModel
 
 @{
     ViewBag.Title = "New Application - Step 1";
@@ -16,6 +16,10 @@
     var isSaOccupied = ViewBag.IsSaOccupied != null
         && (bool)ViewBag.IsSaOccupied;
 
+    var alreadyResident = ViewBag.AlreadyResident != null
+        && (bool)ViewBag.AlreadyResident;
+
+    var currentResidence = ViewBag.CurrentResidence as string ?? "";
 
 
     var quartersTypeLabel = "Applying for Quarters Type";
@@ -90,6 +94,18 @@
     {
         @Html.AntiForgeryToken()
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        if (alreadyResident && !string.IsNullOrEmpty(currentResidence))
+        {
+            <div class="mb-4 row align-items-center">
+                <div class="col-md-4 pe-4">
+                    <label class="form-label fw-bold">Current CLRI Accommodation</label>
+                </div>
+                <div class="col-md-8">
+                    <span class="form-control-plaintext">@currentResidence</span>
+                </div>
+            </div>
+        }
+
 
         <!-- Quarters Toggle -->
         if (!entitledTypeOccupied)
@@ -115,8 +131,8 @@
                 </div>
                 <div class="col-md-8">
                     <span class="text-muted">
-                        You are already in occupation of Type @Model.QuarterType quarters.
-                        You cannot apply again for this type.
+                        Already in occupation of Type @Model.QuarterType quarters.
+                        
                     </span>
                 </div>
             </div>
@@ -139,28 +155,18 @@
                 </div>
             </div>
         }
-        else
+        else if (isSaOccupied)
         {
             <div class="mb-4 row align-items-center">
                 <div class="col-md-4 pe-4">
                     <label class="form-label fw-bold">Applying for Scientist Quarters</label>
                 </div>
                 <div class="col-md-8 d-flex align-items-center">
-                    <span class="text-muted">
-                        @if (isSaOccupied)
-                        {
-                            @:Already in occupation of Scientist Apartments.
-                        }
-                        else if (!isSaEligible)
-                        {
-                            @:Not eligible for Scientist Quarters.
-                        }
-                    </span>
+                    <span class="text-muted">Already in occupation of Scientist Apartments.</span>
                 </div>
             </div>
         }
-
-
+        @* If not eligible AND not occupied → completely suppress the row *@
 
         <!-- Submit -->
         <div class="text-center">
@@ -181,13 +187,41 @@
             errorMessageDiv.style.display = "none";
             form.appendChild(errorMessageDiv);
 
-            form.addEventListener("submit", function (e) {
-                const applyingForQuarters = quartersToggle ? quartersToggle.checked : false;
-                const applyingForScientistQuarters = scientistToggle ? scientistToggle.checked : false;
+            const q = document.getElementById("quartersToggle");
+            if (q) q.checked = false;
 
-                if (!applyingForQuarters && !applyingForScientistQuarters) {
-                    e.preventDefault();
-                    errorMessageDiv.innerText = "Both fields cannot be 'No'. At least one must be 'Yes'.";
+            const sa = document.getElementById("scientistToggle");
+            if (sa) sa.checked = false;
+
+            form.addEventListener("submit", function (e) {
+                const quartersExists   = !!quartersToggle;
+                const scientistExists  = !!scientistToggle;
+
+                const applyingForQuarters          = quartersExists  ? quartersToggle.checked  : false;
+                const applyingForScientistQuarters = scientistExists ? scientistToggle.checked : false;
+
+                let errorText = "";
+
+                if (quartersExists && scientistExists) {
+                    // Both options are visible → at least one must be Yes
+                    if (!applyingForQuarters && !applyingForScientistQuarters) {
+                        errorText = "At least one option (Quarters / Scientist Quarters) must be 'Yes'.";
+                    }
+                } else if (quartersExists && !scientistExists) {
+                    // Only normal Quarters toggle visible → it must be Yes
+                    if (!applyingForQuarters) {
+                        errorText = "Please select 'Yes' to apply for Quarters Type - @Model.QuarterType.";
+                    }
+                } else if (!quartersExists && scientistExists) {
+                    // Only Scientist toggle visible → it must be Yes
+                    if (!applyingForScientistQuarters) {
+                        errorText = "Please select 'Yes' to apply for Scientist Quarters.";
+                    }
+                }
+
+                if (errorText) {
+                    e.preventDefault();          // stop going to next page
+                    errorMessageDiv.innerText = errorText;
                     errorMessageDiv.style.display = "block";
                 } else {
                     errorMessageDiv.innerText = "";
@@ -197,3 +231,4 @@
         });
     </script>
 }
+

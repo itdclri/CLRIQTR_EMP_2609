@@ -179,8 +179,26 @@
             </td>
 
         </tr>
+        @{
+            // Normal entitled type from DB
+            var entitledTypeDisplay = Model.EntitledType;
 
-        <tr><td class="sno">19</td><td class="label">Type Entitled</td><td class="value">@Model.EntitledType</td></tr>
+            // Scientist-apartment interest flag
+            var sainte = (Model.saint ?? "").Trim().ToUpper();
+
+            // If user selected "Scientist Interested" (SI), override as SA
+            if (sainte == "SI")
+            {
+                entitledTypeDisplay = "SA";
+            }
+        }
+
+        <tr>
+            <td class="sno">19</td>
+            <td class="label">Type Entitled</td>
+            <td class="value">@entitledTypeDisplay</td>
+        </tr>
+
         <tr>
             <td class="sno">20</td>
             <td class="label">Are you a resident of CLRI Quarters? (Yes/No)</td>
