@@ -144,6 +144,61 @@ namespace CLRIQTR_EMP.Data.Repositories.Implementations
             return count > 0 ? "IQ" : "OQ";
         }
 
+        public string GetQtrStatus(string empNo)
+        {
+            if (string.IsNullOrEmpty(empNo)) return "OQ";
+
+            const string sql = "SELECT COUNT(*) FROM qtrupd WHERE empno = @empno AND qtrstatus = 'O'";
+
+            try
+            {
+                using (var conn = new MySqlConnection(_connStr))
+                {
+                    conn.Open();
+                    using (var cmd = new MySqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@empno", empNo);
+                        var result = cmd.ExecuteScalar();
+                        long count = 0;
+                        if (result != null && long.TryParse(result.ToString(), out var tmp)) count = tmp;
+                        return count > 0 ? "IQ" : "OQ";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // optionally log ex
+                // On DB error, return "OQ" (safe default) or rethrow depending on your policy
+                return "OQ";
+            }
+        }
+
+        public string GetQtrNo(string empNo)
+        {
+            if (string.IsNullOrEmpty(empNo)) return string.Empty;
+
+            const string sql = "SELECT qtrno FROM qtrupd WHERE empno = @empno AND qtrstatus = 'O' LIMIT 1";
+
+            try
+            {
+                using (var conn = new MySqlConnection(_connStr))
+                {
+                    conn.Open();
+                    using (var cmd = new MySqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@empno", empNo);
+                        var result = cmd.ExecuteScalar();
+                        return result?.ToString() ?? string.Empty;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // optionally log ex
+                return string.Empty;
+            }
+        }
+
 
         public bool InsertEqtrApply(EqtrApply entity)
         {

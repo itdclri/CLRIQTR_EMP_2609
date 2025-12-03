@@ -295,13 +295,32 @@
                 {
                     @:Yes
                 }
+                else if (Model.IsHouseLetOut == "NR")
+                {
+                    @:No
+                }
                 else
                 {
                     @Model.IsHouseLetOut
                 }
             </td>
         </tr>
-        <tr><td class="sno">&nbsp;</td><td class="label">d)  If yes, the monthly rent received</td><td class="value">@Model.RentReceived</td></tr>
+        <tr>
+            <td class="sno">&nbsp;</td>
+            <td class="label">d)  If yes, the monthly rent received</td>
+            <td class="value">
+                @if (Model.IsHouseLetOut == "R")
+                {
+                    @Model.RentReceived
+                }
+                else
+                {
+                    @:NA
+                }
+
+
+            </td>
+        </tr>
         <tr>
             <td class="sno">24</td>
             <td class="label">State whether permanent or temporary</td>
